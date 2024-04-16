@@ -1,0 +1,4 @@
+# Request
+geometry_msgs/Pose initialPose
+---
+# Response

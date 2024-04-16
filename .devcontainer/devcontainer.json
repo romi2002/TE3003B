@@ -1,0 +1,28 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/desktop-lite:1": {
+            "version": "latest"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-iot.vscode-ros",
+                "ms-python.black-formatter",
+                "twxs.cmake"
+            ]
+        }
+    },
+    // "onCreateCommand": "pip install numpy --upgrade",
+    // "onCreateCommand": "apt-get update && apt-get install  -y && pip install flax",
+    "forwardPorts": [
+        6080,
+        5901,
+        2222,
+        9090
+    ]
+}

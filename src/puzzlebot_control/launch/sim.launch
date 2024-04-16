@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="puzzlebot_control" name="kinematic_node" type="puzzlebot_kinematic_sim_node" output="screen"/>
+    <node pkg="puzzlebot_control" name="odometry_node" type="puzzlebot_odometry_node"/>
+</launch>
