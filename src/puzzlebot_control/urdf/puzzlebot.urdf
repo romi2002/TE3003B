@@ -14,7 +14,7 @@
 
     <link name="chassis">
         <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0 0 0" rpy="0 0 1.57"/>
             <mass value="0.01" />
             <inertia ixx="7.58333333333e-06" ixy="0.0" ixz="0.0" iyy="7.58333333333e-06" iyz="0.0" izz="1.25e-05"/>
         </inertial>
@@ -25,7 +25,7 @@
             </geometry>
         </collision>
         <visual>
-            <origin rpy="0 0 1.57079632679" xyz="0 0 0"/>
+            <origin rpy="1.57 0 1.57" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="package://puzzlebot_control/models/MCR2_1000_13_Chassis.stl"/>
             </geometry>
@@ -37,7 +37,7 @@
 
     <link name="wheel_left_link">
         <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="-1.57 0.0 0.0"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0 0.0 0.0"/>
             <geometry>
                 <mesh filename="package://puzzlebot_control/models/MCR2_1000_1_1_Wheel_Coupler_2.stl"/>
             </geometry>
@@ -69,7 +69,7 @@
 
     <link name="wheel_right_link">
         <visual>
-            <origin xyz="0.0 0.0 0" rpy="1.57 0 0" />
+            <origin xyz="0.0 0.0 0" rpy="0 0 0" />
             <geometry>
                 <mesh filename="package://puzzlebot_control/models/MCR2_1000_1_1_Wheel_Coupler_2.stl"/>
             </geometry>
