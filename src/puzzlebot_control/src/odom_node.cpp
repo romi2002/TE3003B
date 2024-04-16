@@ -5,6 +5,7 @@
 #include "std_msgs/Float64.h"
 #include "nav_msgs/Odometry.h"
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include "puzzlebot_control/ResetPosition.h"
 
 class OdometryNode{
@@ -42,6 +43,7 @@ protected:
         currentOdom.pose.pose.position.y += std::sin(yaw) * v * dt;
         yaw += omega * dt;
 
+        // Publish odom.
         tf2::Quaternion quat;
         quat.setRPY(0, 0, yaw);
         currentOdom.pose.pose.orientation = tf2::toMsg(quat);
@@ -51,6 +53,18 @@ protected:
 
         currentOdom.header.stamp = ros::Time::now();
         odomPub.publish(currentOdom);
+
+        // Publish broadcast.
+        geometry_msgs::TransformStamped transformStamped;
+  
+        transformStamped.header.stamp = ros::Time::now();
+        transformStamped.header.frame_id = "odom";
+        transformStamped.child_frame_id = "base_link";
+        transformStamped.transform.translation.x = currentOdom.pose.pose.position.x;
+        transformStamped.transform.translation.y = currentOdom.pose.pose.position.y;
+        transformStamped.transform.translation.z = currentOdom.pose.pose.position.z;
+        transformStamped.transform.rotation = tf2::toMsg(quat);
+        br.sendTransform(transformStamped);
     }
 
     bool reset_position(
@@ -72,6 +86,7 @@ private:
     geometry_msgs::Twist cmd_vel;
 
     ros::ServiceServer resetService;
+    tf2_ros::TransformBroadcaster br;
 
     // Simulation constants
     static constexpr double dt{0.01};
