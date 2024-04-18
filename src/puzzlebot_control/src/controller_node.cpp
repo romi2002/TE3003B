@@ -14,7 +14,7 @@ class PathController {
     cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
 
     targetSub = nh.subscribe<geometry_msgs::PoseStamped>(
-        "target_pose", 10, [this](const geometry_msgs::PoseStampedConstPtr &msg) {
+        "/move_base_simple/goal", 10, [this](const geometry_msgs::PoseStampedConstPtr &msg) {
             // TODO Target yaw
           this->target_x = msg->pose.position.x;
           this->target_y = msg->pose.position.y;
@@ -120,7 +120,7 @@ class PathController {
   double l{1}, r{1};
   double max_u{1}, max_r{1};
 
-  double k_u{1}, k_r{1};
+  double k_u{0.5}, k_r{0.8};
   double ki_u{0.0}, ki_r{0.0};
 
   double dist_integral{0}, angle_integral{0};

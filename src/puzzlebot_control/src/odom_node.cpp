@@ -25,6 +25,9 @@ public:
             this->wr = msg.data;
         });
 
+        theta_pub = nh.advertise<std_msgs::Float64>("theta", 1000);
+
+
         resetService = nh.advertiseService("reset_position", &OdometryNode::reset_position, this);
 
         timer = nh.createTimer(ros::Duration(dt), &OdometryNode::update, this);
@@ -42,6 +45,9 @@ protected:
         currentOdom.pose.pose.position.x += std::cos(yaw) * v * dt;
         currentOdom.pose.pose.position.y += std::sin(yaw) * v * dt;
         yaw += omega * dt;
+        std_msgs::Float64 msg;
+        msg.data = yaw;
+        theta_pub.publish(msg);
 
         // Publish odom.
         tf2::Quaternion quat;
@@ -77,7 +83,7 @@ protected:
 
 private:
     ros::NodeHandle nh;
-    ros::Publisher odomPub;
+    ros::Publisher odomPub, theta_pub;
     ros::Subscriber leftSub, rightSub;
     ros::Timer timer;
 
