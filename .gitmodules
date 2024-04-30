@@ -1,3 +1,0 @@
-[submodule "src/puzzlebot_ros"]
-	path = src/puzzlebot_ros
-	url = https://github.com/ManchesterRoboticsLtd/puzzlebot_ros.git
