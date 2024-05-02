@@ -13,6 +13,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 add_executable(controller_node src/controller_node.cpp)
 add_executable(kinematic_node src/kinematic_sim.cpp)
@@ -22,10 +23,14 @@ ament_target_dependencies(kinematic_node rclcpp geometry_msgs tf2 tf2_ros tf2_ge
 add_executable(potential_field_node src/potential_field_node.cpp)
 ament_target_dependencies(potential_field_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs)
 
+add_executable(odometry_node src/odometry_node.cpp)
+ament_target_dependencies(odometry_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs nav_msgs)
+
 INSTALL(TARGETS
   controller_node
   potential_field_node
   kinematic_node
+  odometry_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
