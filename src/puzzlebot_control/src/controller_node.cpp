@@ -34,11 +34,11 @@ class PathController : public rclcpp::Node {
     last_time_ = this->get_clock()->now();
 
     // Controller constants
-    this->declare_parameter("max_u_", 0.6);
-    max_u_ = this->get_parameter("max_u_").as_double();
+    this->declare_parameter("max_u", 0.6);
+    max_u_ = this->get_parameter("max_u").as_double();
     
-    this->declare_parameter("max_r_", 1.25);
-    max_r_ = this->get_parameter("max_r_").as_double();
+    this->declare_parameter("max_r", 1.25);
+    max_r_ = this->get_parameter("max_r").as_double();
     
     this->declare_parameter("k_u", 0.25);
     k_u = this->get_parameter("k_u").as_double();
