@@ -17,8 +17,11 @@ find_package(nav_msgs REQUIRED)
 
 add_executable(controller_node src/controller_node.cpp)
 add_executable(kinematic_node src/kinematic_sim.cpp)
+add_executable(joint_state_node src/joint_state_publisher_node.cpp)
 ament_target_dependencies(controller_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs)
 ament_target_dependencies(kinematic_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs std_msgs)
+ament_target_dependencies(joint_state_node rclcpp geometry_msgs sensor_msgs tf2_geometry_msgs std_msgs)
+
 
 add_executable(potential_field_node src/potential_field_node.cpp)
 ament_target_dependencies(potential_field_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs)
@@ -31,6 +34,7 @@ INSTALL(TARGETS
   potential_field_node
   kinematic_node
   odometry_node
+  joint_state_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
