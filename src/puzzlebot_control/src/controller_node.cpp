@@ -6,6 +6,7 @@
 #include "tf2/exceptions.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
@@ -27,24 +28,17 @@ class PathController : public rclcpp::Node {
         }
     );
 
-    tf_buffer = std::make_unique<tf2_ros::Buffer>(this->get_clock());
-    tf_listener = std::make_shared<tf2_ros::TransformListener>(*tf_buffer);
+    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    last_time = this->get_clock()->now();
-
-    // Setup robot constant params
-    this->declare_parameter("wheel_base", 0.18);
-    l = this->get_parameter("wheel_base").as_double();
-
-    this->declare_parameter("wheel_radius", 0.05);
-    r = this->get_parameter("wheel_radius").as_double();
+    last_time_ = this->get_clock()->now();
 
     // Controller constants
-    this->declare_parameter("max_u", 0.6);
-    max_u = this->get_parameter("max_u").as_double();
+    this->declare_parameter("max_u_", 0.6);
+    max_u_ = this->get_parameter("max_u_").as_double();
     
-    this->declare_parameter("max_r", 1.25);
-    max_r = this->get_parameter("max_r").as_double();
+    this->declare_parameter("max_r_", 1.25);
+    max_r_ = this->get_parameter("max_r_").as_double();
     
     this->declare_parameter("k_u", 0.25);
     k_u = this->get_parameter("k_u").as_double();
@@ -60,14 +54,14 @@ class PathController : public rclcpp::Node {
  protected:
   void sendVelocity(double u, double r) {
     // Clamp velocities to max
-    if (std::abs(u) > max_u) u = std::copysign(max_u, u);
-    if (std::abs(r) > max_r) r = std::copysign(max_r, r);
+    if (std::abs(u) > max_u_) u = std::copysign(max_u_, u);
+    if (std::abs(r) > max_r_) r = std::copysign(max_r_, r);
 
     geometry_msgs::msg::Twist msg;
     msg.linear.x = u;
     msg.angular.z = r;
-    last_u = u;
-    last_r = r;
+    last_u_ = u;
+    last_r_ = r;
     cmd_vel_pub->publish(msg);
   }
 
@@ -82,7 +76,7 @@ class PathController : public rclcpp::Node {
 
     geometry_msgs::msg::TransformStamped transformStamped;
     try{
-      transformStamped = tf_buffer->lookupTransform("map", "base_link", tf2::TimePointZero);
+      transformStamped = tf_buffer_->lookupTransform("map", "base_link", tf2::TimePointZero);
     }
     catch (tf2::TransformException &ex) {
       RCLCPP_WARN(this->get_logger(), "%s", ex.what());
@@ -91,13 +85,8 @@ class PathController : public rclcpp::Node {
     }
 
     /// Get RPY from transform quaternion.
-    tf2::Quaternion q(
-        transformStamped.transform.rotation.x,
-        transformStamped.transform.rotation.y,
-        transformStamped.transform.rotation.z,
-        transformStamped.transform.rotation.w
-    );
-
+    tf2::Quaternion q;
+    tf2::fromMsg(transformStamped.transform.rotation, q);
     tf2::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
@@ -122,32 +111,26 @@ class PathController : public rclcpp::Node {
     angle_integral += angle * dt;
     sendVelocity(u, r);
 
-    last_time = this->get_clock()->now();
+    last_time_ = this->get_clock()->now();
   }
 
  private:
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr targetSub;
   rclcpp::TimerBase::SharedPtr timer;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener{nullptr};
-  std::unique_ptr<tf2_ros::Buffer> tf_buffer;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
-  // Estimated positions
-  double leftWheel{0}, rightWheel{0};
-  double last_u{0}, last_r{0};
-  rclcpp::Time last_time;
+  double last_u_{0}, last_r_{0};
+  rclcpp::Time last_time_;
 
-  // TODO make these params
-  double l{1}, r{1};
-  double max_u{1}, max_r{1};
-
+  double max_u_{1}, max_r_{1};
   double k_u{1}, k_r{1};
   double ki_u{0.0}, ki_r{0.0};
 
   double dist_integral{0}, angle_integral{0};
 
   double target_x{0}, target_y{0};
-  bool closedLoop{true};
 };
 
 int main(int argc, char **argv) {
