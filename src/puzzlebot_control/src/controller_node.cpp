@@ -98,11 +98,14 @@ class PathController : public rclcpp::Node {
     double angle = wrapAngle(std::atan2(error_y, error_x) - yaw);
 
     // Compute velocities with proportional control
-    double u = distance * std::cos(angle) * k_u + dist_integral * ki_u;
-    double r = -angle * k_r - angle_integral * ki_r;
+    ki_r = 0;
+    ki_u = 0;
+    double u = distance * std::cos(angle) * k_u;
+    double r = angle * k_r;
+    RCLCPP_INFO(this->get_logger(), "U: %f R: %f error_x: %f error_y: %f yaw: %f angle: %f", u, r, error_x, error_y, yaw, angle);
 
     // Stop when close
-    if (distance < 0.1) {
+    if (distance < 0.05) {
       u = 0;
       r = 0;
     }

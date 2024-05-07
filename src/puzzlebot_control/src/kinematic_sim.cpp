@@ -14,8 +14,8 @@ class KinematicModel : public rclcpp::Node
 {
     public:
         KinematicModel() : Node("puzzlebot_kinematic_model"),
-            leftPub(this->create_publisher<std_msgs::msg::Float64>("wl", 10)),
-            rightPub(this->create_publisher<std_msgs::msg::Float64>("wr", 10))
+            leftPub(this->create_publisher<std_msgs::msg::Float64>("VelocityEncL", 10)),
+            rightPub(this->create_publisher<std_msgs::msg::Float64>("VelocityEncR", 10))
         {
             cmd_vel.linear.x = 0; // u
             cmd_vel.angular.z = 0; // r

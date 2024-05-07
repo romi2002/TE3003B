@@ -14,6 +14,8 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
 add_executable(controller_node src/controller_node.cpp)
 add_executable(kinematic_node src/kinematic_sim.cpp)
@@ -36,6 +38,17 @@ INSTALL(TARGETS
   odometry_node
   joint_state_node
   DESTINATION lib/${PROJECT_NAME}
+)
+
+ament_python_install_package(${PROJECT_NAME})
+install(PROGRAMS
+  scripts/cmd_vel_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
 )
 
 ament_package()
