@@ -1,10 +1,24 @@
-FROM ros:noetic
+FROM ros:humble
 RUN apt-get update && \
-	apt-get install -y curl ros-noetic-desktop wget ros-noetic-foxglove-bridge ros-noetic-rqt-multiplot && \
+	apt-get install -y curl wget ros-humble-foxglove-bridge software-properties-common && \
 	rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && \
-    apt-get install -y ros-noetic-tf2-geometry-msgs && \
+    apt-get install -y cmake build-essential libprotobuf-dev autoconf libtool pkg-config golang-go protobuf-compiler libabsl-dev && \
+    git clone --recurse-submodules -b v1.30.2 --depth 1 --shallow-submodules https://github.com/grpc/grpc && \
+    cd grpc && mkdir -p cmake/build && cd cmake/build && \
+    cmake -DgRPC_INSTALL=ON \
+      -DgRPC_BUILD_TESTS=OFF \
+    -DCMAKE_BUILD_TYPE=Release       \
+    -DgRPC_ABSL_PROVIDER=package     \
+    -DgRPC_PROTOBUF_PROVIDER=package \
+      ../.. && \
+    make -j12 && \
+    make install && \
+    rm -rf /var/lib/apt/lists
+
+RUN apt-get update && \
+    apt-get install -y ros-humble-tf2-geometry-msgs && \
     rm -rf /var/lib/apt/lists/*
 
 COPY library-scripts/desktop-lite-debian.sh /tmp/library-scripts/
