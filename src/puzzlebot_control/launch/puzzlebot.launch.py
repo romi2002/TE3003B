@@ -21,6 +21,18 @@ def generate_launch_description():
             executable = "cmd_vel_node.py",
             name = "cmd_vel_node"
         ),
+        Node(
+            package = "tf2_ros",
+            executable = "static_transform_publisher",
+            arguments = ["0", "0", "0", "0", "0", "0", "odom", "base_link"],
+            output = 'screen'
+        ),
+        Node(
+            package = "tf2_ros",
+            executable = "static_transform_publisher",
+            arguments = ["0", "0", "0", "0", "0", "0", "odom", "laser"],
+            output = 'screen'
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 PathJoinSubstitution([

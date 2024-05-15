@@ -29,7 +29,7 @@ class CmdVelNode(Node):
         wr = (u + (self.l * omega) / 2.0) * (1.0 / self.r)
 
         min_wheel = 0.1
-        max_wheel = 1.5
+        max_wheel = 2.0
         if math.fabs(wl) > max_wheel:
             wl = math.copysign(max_wheel, wl)
         elif math.fabs(wl) < min_wheel:
