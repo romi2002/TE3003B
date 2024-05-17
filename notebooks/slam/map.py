@@ -1,6 +1,7 @@
 import cv2
 
-class Map():
+
+class Map:
     def __init__(self, map, width, height, resolution):
         self.data = map
         self.width = width

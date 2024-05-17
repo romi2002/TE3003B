@@ -1,17 +1,19 @@
-
-from slam.particle import Particle
-import numpy as np
-import matplotlib.pyplot as plt
 import math
-from slam.scan import Scan
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from slam.likelihood_field import LikelihoodField
 from slam.occupancy_grid import OccupancyGrid
+from slam.particle import Particle
+from slam.scan import Scan
+from line_profiler import profile
 
 # Probabilistic robotics, Table 13.4 P 478
-class FastSLAM():
+class FastSLAM:
     def __init__(self):
         self.dt = 0.01
-        self.num_particles = 1
+        self.num_particles = 20
         self.particles = [Particle(None) for _ in range(self.num_particles)]
 
     def sample_normal(self, b):
@@ -47,13 +49,13 @@ class FastSLAM():
     @staticmethod
     def prob_centered_gaussian(dist, std_dev):
         c = 1.0 / (std_dev * np.sqrt(2 * math.pi))
-        prob = c * math.exp((-math.pow(dist ,2) ) /(2 * math.pow(std_dev, 2)))
+        prob = c * math.exp((-math.pow(dist, 2)) / (2 * math.pow(std_dev, 2)))
         return prob
 
     # Computes range model using liklihood field
     # Given scan, pose and map
     # Table 6.3 P.143
-    def measurement_model_map(self, scan: Scan, pose, like_field: LikelihoodField):
+    def measurement_model_map(self, scan: Scan, pose, grid: OccupancyGrid, like_field: LikelihoodField):
         x, y, theta = pose
         q = 1
         for i, range in enumerate(scan.ranges):
@@ -61,21 +63,24 @@ class FastSLAM():
                 continue
 
             angle = (i * scan.angle_increment) + scan.angle_min
-            assert(angle < scan.angle_max)
+            assert (angle < scan.angle_max)
             angle += theta
 
             # Get the reported position of the obstacle
             x_z = x + range * np.cos(angle)
             y_z = y + range * np.sin(angle)
 
+            x_c, y_c = grid.coordinate_to_cell(x_z, y_z)
+
             # Now get the distance to the closest obstacle
-            distance = like_field.closest_obstacle_to_pose(x_z, y_z)
+            distance = like_field.closest_obstacle_to_pose(x_c, y_c)
 
             # Update probability, this is using the simplified model, without taking into account z_random and z_max
             # TODO, Maybe implement this?
             q = q * FastSLAM.prob_centered_gaussian(distance, 0.01)
         return q
 
+    @profile
     def update(self, u, pose, scan):
         # Sample motion model and create particles
         for particle in self.particles:
@@ -90,8 +95,8 @@ class FastSLAM():
 
             # Measurement_model_map
             search_cell = particle.map.coordinate_to_cell(pose[0], pose[1])
-            particle.like_field = LikelihoodField(particle.map, search_cell, max_range=scan.range_max)
-            particle.weight = self.measurement_model_map(scan, particle.pose, particle.like_field)
+            particle.like_field = LikelihoodField(particle.map, search_cell, max_range=scan.range_max / particle.map.map_resolution)
+            particle.weight = self.measurement_model_map(scan, particle.pose, particle.map, particle.like_field)
 
             # updated_occupancy_grid
             particle.map.update(particle.pose, scan)

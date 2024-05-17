@@ -1,13 +1,15 @@
 import numpy as np
 from numba import njit
+
 from slam.scan import Scan
+from line_profiler import profile
 
 class OccupancyGrid():
     def __init__(self):
         # Defined in meters
         self.map_size = (100, 100)
         self.map_resolution = 1 / 5
-        self.map_origin = (0, 0)
+        self.map_origin = (-50, -50)
         self.log_prob_map = np.zeros([
             int(self.map_size[0] / self.map_resolution),
             int(self.map_size[1] / self.map_resolution)],
@@ -35,7 +37,7 @@ class OccupancyGrid():
     # Returns grid cells between points using Bresenham's line algorithm
     # https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
     @staticmethod
-    @njit
+    @profile
     def bresenham_line(x0, y0, x1, y1):
         points = []
         dx = abs(x1 - x0)
@@ -75,6 +77,7 @@ class OccupancyGrid():
             y + scan.ranges * np.sin(scan_angles + theta)
         )).T
 
+    @profile
     def update_cells(self, pose, scan):
         x, y, theta = pose
         # Get the occupied cells from scans with an obstacle
@@ -106,6 +109,7 @@ class OccupancyGrid():
     def get_map(self):
         return 1 - 1 / (1 + np.exp(np.clip(self.log_prob_map, -10, 10)))
 
+    @profile
     def update(self, pose, scan: Scan):
         obstacle_cells, free_cells = self.update_cells(pose, scan)
         for (x, y) in filter(self.is_valid_cell_coordinate, obstacle_cells):
