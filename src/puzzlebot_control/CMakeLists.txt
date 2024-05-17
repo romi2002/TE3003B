@@ -49,6 +49,8 @@ install(PROGRAMS
 
 install(DIRECTORY
   launch
+  urdf
+  models
   DESTINATION share/${PROJECT_NAME}/
 )
 
