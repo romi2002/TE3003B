@@ -102,7 +102,7 @@ class PathController : public rclcpp::Node {
     ki_u = 0;
     double u = distance * std::cos(angle) * k_u;
     double r = angle * k_r;
-    RCLCPP_INFO(this->get_logger(), "U: %f R: %f error_x: %f error_y: %f yaw: %f angle: %f", u, r, error_x, error_y, yaw, angle);
+    //RCLCPP_INFO(this->get_logger(), "U: %f R: %f error_x: %f error_y: %f yaw: %f angle: %f", u, r, error_x, error_y, yaw, angle);
 
     // Stop when close
     if (distance < 0.05) {

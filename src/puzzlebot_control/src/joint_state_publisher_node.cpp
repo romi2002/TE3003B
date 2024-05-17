@@ -2,7 +2,7 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-#include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/float32.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
@@ -12,13 +12,13 @@ public:
         double dt = 0.01;
         jointPub = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
 
-        leftSub = this->create_subscription<std_msgs::msg::Float64>(
-            "wl", 1, [&](const std_msgs::msg::Float64::SharedPtr msg) {
+        leftSub = this->create_subscription<std_msgs::msg::Float32>(
+            "VelocityEncL", 1, [&](const std_msgs::msg::Float32::SharedPtr msg) {
                 this->wl = msg->data;
             });
 
-        rightSub = this->create_subscription<std_msgs::msg::Float64>(
-            "wr", 1, [&](const std_msgs::msg::Float64::SharedPtr msg) {
+        rightSub = this->create_subscription<std_msgs::msg::Float32>(
+            "VelocityEncR", 1, [&](const std_msgs::msg::Float32::SharedPtr msg) {
                 this->wr = msg->data;
             });
 
@@ -43,7 +43,7 @@ protected:
 
 private:
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr jointPub;
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr leftSub, rightSub;
+    rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr leftSub, rightSub;
     rclcpp::TimerBase::SharedPtr timer;
 
     double wl{0}, wr{0};

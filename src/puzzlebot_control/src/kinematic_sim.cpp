@@ -5,7 +5,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/float32.hpp"
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include "geometry_msgs/msg/twist.hpp"
@@ -14,8 +14,8 @@ class KinematicModel : public rclcpp::Node
 {
     public:
         KinematicModel() : Node("puzzlebot_kinematic_model"),
-            leftPub(this->create_publisher<std_msgs::msg::Float64>("VelocityEncL", 10)),
-            rightPub(this->create_publisher<std_msgs::msg::Float64>("VelocityEncR", 10))
+            leftPub(this->create_publisher<std_msgs::msg::Float32>("VelocityEncL", 10)),
+            rightPub(this->create_publisher<std_msgs::msg::Float32>("VelocityEncR", 10))
         {
             cmd_vel.linear.x = 0; // u
             cmd_vel.angular.z = 0; // r
@@ -36,8 +36,8 @@ class KinematicModel : public rclcpp::Node
             double omega = cmd_vel.angular.z;
 
             // Publish wheel velocities from cmd_vel
-            auto leftMsg = std_msgs::msg::Float64();
-            auto rightMsg = std_msgs::msg::Float64();
+            auto leftMsg = std_msgs::msg::Float32();
+            auto rightMsg = std_msgs::msg::Float32();
             leftMsg.data = (u - (l * omega) / 2.0) * (1.0 / r);
             rightMsg.data = (u + (l * omega) / 2.0) * (1.0 / r);
 
@@ -46,8 +46,8 @@ class KinematicModel : public rclcpp::Node
         }
 
     private:
-        rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr leftPub;
-        rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr rightPub;
+        rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr leftPub;
+        rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr rightPub;
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velSub;
         rclcpp::TimerBase::SharedPtr timer;
 

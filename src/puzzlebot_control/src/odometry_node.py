@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose, PoseStamped, Twist, TransformStamped
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Float64
+from std_msgs.msg import Float32
 from tf2_ros import TransformBroadcaster
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
 import math
@@ -18,9 +18,9 @@ class OdometryNode(Node):
         qos = QoSProfile(depth=1, reliability=qos_profile_sensor_data.reliability)
         
         self.left_sub = self.create_subscription(
-            Float64, 'VelocityEncL', self.left_callback, qos)
+            Float32, 'VelocityEncL', self.left_callback, qos)
         self.right_sub = self.create_subscription(
-            Float64, 'VelocityEncR', self.right_callback, qos)
+            Float32, 'VelocityEncR', self.right_callback, qos)
         
         self.br = TransformBroadcaster(self)
         
@@ -43,9 +43,11 @@ class OdometryNode(Node):
     
     def left_callback(self, msg):
         self.wl = -msg.data
+        self.get_logger().info(f"Wl: {self.wl}")
     
     def right_callback(self, msg):
         self.wr = -msg.data
+        self.get_logger().info(f"Wr: {self.wr}")
     
     def update(self):
         # r = 0.05  # wheel radius
@@ -55,7 +57,7 @@ class OdometryNode(Node):
         v = self.r * (self.wr + self.wl) / 2.0  # X Vel
         omega = self.r * (self.wr - self.wl) / self.l  # Angular vel
         
-        self.get_logger().info(f"Wl: {self.wl} Wr: {self.wr} v: {v} omega: {omega} yaw: {self.yaw}")
+        #self.get_logger().info(f"Wl: {self.wl} Wr: {self.wr} v: {v} omega: {omega} yaw: {self.yaw}")
         
         self.current_odom.pose.pose.position.x += math.cos(self.yaw) * v * self.dt
         self.current_odom.pose.pose.position.y += math.sin(self.yaw) * v * self.dt

@@ -43,7 +43,7 @@ def generate_launch_description():
 
     ld.add_action(Node(
         package='puzzlebot_control',
-        executable='odometry_node',
+        executable='odometry_node.py',
         name='odometry_node',
         output='screen'
     ))
@@ -55,19 +55,19 @@ def generate_launch_description():
         output='screen'
     ))
 
-    ld.add_action(Node(
-        package='puzzlebot_control',
-        executable='controller_node',
-        name='controller_node',
-        output='screen'
-    ))
+    # ld.add_action(Node(
+    #     package='puzzlebot_control',
+    #     executable='controller_node',
+    #     name='controller_node',
+    #     output='screen'
+    # ))
 
     ld.add_action(Node(
         package='tf2_ros',
         executable='static_transform_publisher',
         name='map_odom_publisher',
         output='screen',
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+        arguments=['0', '0', '0', '0', '0', '0', 'odom', 'base_link']
     ))
 
     return ld

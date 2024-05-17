@@ -35,7 +35,7 @@ public:
     timer =
         this->create_wall_timer(10ms, std::bind(&OdometryNode::update, this));
 
-    RCLCPP_INFO(this->get_logger(), "Finished initializing odometry.");
+    //RCLCPP_INFO(this->get_logger(), "Finished initializing odometry.");
   }
 
 protected:
@@ -43,7 +43,7 @@ protected:
     double v = r * ((wr + wl) / 2.0);   // X Vel
     double omega = r * ((wr - wl) / l); // Angular vel
 
-    RCLCPP_INFO(this->get_logger(), "Wl: %f Wr: %f v: %f omega: %f yaw: %f", wl, wr, v, omega, yaw);
+    //RCLCPP_INFO(this->get_logger(), "Wl: %f Wr: %f v: %f omega: %f yaw: %f", wl, wr, v, omega, yaw);
     currentOdom.pose.pose.position.x += std::cos(yaw) * v * dt;
     currentOdom.pose.pose.position.y += std::sin(yaw) * v * dt;
     yaw += omega * dt;
