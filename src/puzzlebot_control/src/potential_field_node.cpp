@@ -13,6 +13,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "geometry_msgs/msg/vector3_stamped.hpp"
 
 using namespace std::chrono_literals;
 
@@ -36,6 +37,9 @@ class PotentialFieldController : public rclcpp::Node {
       }
     );
 
+    force_goal_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("goal_force", 10);
+    force_obs_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("obstacle_force", 10);
+
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
@@ -56,6 +60,12 @@ class PotentialFieldController : public rclcpp::Node {
 
     this->declare_parameter("obstacle_gain", 10.0);
     obstacle_gain_ = this->get_parameter("obstacle_gain").as_double();
+
+    this->declare_parameter("k_u", 0.25);
+    k_u = this->get_parameter("k_u").as_double();
+
+    this->declare_parameter("k_r", 1.5);
+    k_r = this->get_parameter("k_r").as_double();
 
     timer = this->create_wall_timer(
         10ms, std::bind(&PotentialFieldController::update, this)
@@ -86,33 +96,26 @@ class PotentialFieldController : public rclcpp::Node {
     double dt = 0.01;
 
     geometry_msgs::msg::TransformStamped transformStamped;
-    // try{
-    //   transformStamped = tf_buffer_->lookupTransform("map", "base_link", tf2::TimePointZero);
-    // }
-    // catch (tf2::TransformException &ex) {
-    //   RCLCPP_WARN(this->get_logger(), "%s", ex.what());
-    //   rclcpp::sleep_for(1s);
-    //   return;
-    // }
+    try{
+      transformStamped = tf_buffer_->lookupTransform("map", "base_link", tf2::TimePointZero);
+    }
+    catch (tf2::TransformException &ex) {
+      RCLCPP_WARN(this->get_logger(), "%s", ex.what());
+      rclcpp::sleep_for(1s);
+      return;
+    }
 
-    // /// Get RPY from transform quaternion.
-    // tf2::Quaternion q;
-    // tf2::fromMsg(transformStamped.transform.rotation, q);
-    // tf2::Matrix3x3 m(q);
-    // double roll, pitch, yaw;
-    // m.getRPY(roll, pitch, yaw);
-
-    // TMP Variables
-    transformStamped.transform.translation.x = 0;
-    transformStamped.transform.translation.y = 0;
-    double yaw = 0;
-    double target_x = 1;
-    double target_y = 0;
+    /// Get RPY from transform quaternion.
+    tf2::Quaternion q;
+    tf2::fromMsg(transformStamped.transform.rotation, q);
+    tf2::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
 
     // Compute error distance and angle to target
     double error_x = target_x - transformStamped.transform.translation.x;
     double error_y = target_y - transformStamped.transform.translation.y;
-
+    double dist = std::hypot(error_x, error_y);
 
     // Goal attraction. Transform error from world frame to robot frame.
     double goal_x = error_x * std::cos(yaw) - error_y * std::sin(yaw);
@@ -162,6 +165,20 @@ class PotentialFieldController : public rclcpp::Node {
     obstacle_x /= range_count;
     obstacle_y /= range_count;
 
+    geometry_msgs::msg::Vector3Stamped goal_force_msg, obstacle_force_msg;
+    goal_force_msg.header.frame_id = "base_link";
+    goal_force_msg.header.stamp = this->get_clock()->now();
+    obstacle_force_msg.header = goal_force_msg.header;
+
+    goal_force_msg.vector.x = goal_x * goal_gain_;
+    goal_force_msg.vector.y = goal_y * goal_gain_;
+    goal_force_msg.vector.z = 0;
+    obstacle_force_msg.vector.x = obstacle_x * obstacle_gain_;
+    obstacle_force_msg.vector.y = obstacle_y * obstacle_gain_;
+    obstacle_force_msg.vector.z = 0;
+    force_goal_pub->publish(goal_force_msg);
+    force_obs_pub->publish(obstacle_force_msg);
+
     double force_x = goal_x * goal_gain_ + obstacle_x * obstacle_gain_;
     double force_y = goal_y * goal_gain_ + obstacle_y * obstacle_gain_;
 
@@ -173,10 +190,16 @@ class PotentialFieldController : public rclcpp::Node {
     double u = force_mag * std::cos(force_angle) * k_u;
     double r = force_angle * k_r;
     RCLCPP_INFO(this->get_logger(), "U: %f R: %f", u, r);
+    if(dist < 0.1){
+      u = 0;
+      r = 0;
+    }
+    sendVelocity(u, r);
   }
 
  private:
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub;
+  rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr force_goal_pub, force_obs_pub;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr targetSub;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
   std::optional<sensor_msgs::msg::LaserScan> scan_msg_;
@@ -189,7 +212,7 @@ class PotentialFieldController : public rclcpp::Node {
   rclcpp::Time last_time_;
 
   double max_u_{1}, max_r_{1};
-  double k_u{1}, k_r{1};
+  double k_u{0.5}, k_r{1};
   double ki_u{0.0}, ki_r{0.0};
 
   double max_range_{1};
