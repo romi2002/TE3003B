@@ -25,6 +25,11 @@ class PathController : public rclcpp::Node {
             // TODO Target yaw
           this->target_x = msg.pose.position.x;
           this->target_y = msg.pose.position.y;
+          tf2::Quaternion q;
+          tf2::fromMsg(msg.pose.orientation, q);
+          tf2::Matrix3x3 m(q);
+          double roll, pitch;
+          m.getRPY(roll, pitch, this->target_yaw);
         }
     );
 
@@ -71,8 +76,8 @@ class PathController : public rclcpp::Node {
   }
 
   void update() {
-    // Hardcoded for now :)
-    double dt = 0.01;
+    auto now = this->get_clock()->now();
+    double dt = (now - last_time_).seconds();
 
     geometry_msgs::msg::TransformStamped transformStamped;
     try{
@@ -84,22 +89,22 @@ class PathController : public rclcpp::Node {
       return;
     }
 
-    /// Get RPY from transform quaternion.
-    tf2::Quaternion q;
-    tf2::fromMsg(transformStamped.transform.rotation, q);
-    tf2::Matrix3x3 m(q);
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw);
+    // /// Get RPY from transform quaternion.
+    // tf2::Quaternion q;
+    // tf2::fromMsg(transformStamped.transform.rotation, q);
+    // tf2::Matrix3x3 m(q);
+    // double roll, pitch, yaw;
+    // m.getRPY(roll, pitch, yaw);
 
     // Compute error distance and angle to target
     double error_x = target_x - transformStamped.transform.translation.x;
     double error_y = target_y - transformStamped.transform.translation.y;
     double distance = std::hypot(error_x, error_y);
-    double angle = wrapAngle(std::atan2(error_y, error_x) - yaw);
+    double angle = wrapAngle(std::atan2(error_y, error_x) - target_yaw);
 
     // Compute velocities with proportional control
-    ki_r = 0;
-    ki_u = 0;
+    //ki_r = 0;
+    //ki_u = 0;
     double u = distance * std::cos(angle) * k_u;
     double r = angle * k_r;
     //RCLCPP_INFO(this->get_logger(), "U: %f R: %f error_x: %f error_y: %f yaw: %f angle: %f", u, r, error_x, error_y, yaw, angle);
@@ -133,7 +138,7 @@ class PathController : public rclcpp::Node {
 
   double dist_integral{0}, angle_integral{0};
 
-  double target_x{0}, target_y{0};
+  double target_x{0}, target_y{0}, target_yaw{0};
 };
 
 int main(int argc, char **argv) {

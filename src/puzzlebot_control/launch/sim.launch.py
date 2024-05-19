@@ -55,12 +55,12 @@ def generate_launch_description():
         output='screen'
     ))
 
-    # ld.add_action(Node(
-    #     package='puzzlebot_control',
-    #     executable='controller_node',
-    #     name='controller_node',
-    #     output='screen'
-    # ))
+    ld.add_action(Node(
+        package='puzzlebot_control',
+        executable='controller_node',
+        name='controller_node',
+        output='screen'
+    ))
 
     ld.add_action(Node(
         package='tf2_ros',
