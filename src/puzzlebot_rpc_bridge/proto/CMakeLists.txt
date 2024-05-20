@@ -6,7 +6,7 @@ find_package(Protobuf REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 
 set(PROTO_FILES
-    Test.proto
+    RobotState.proto
 )
 
 add_library(puzzlebot_proto ${PROTO_FILES})

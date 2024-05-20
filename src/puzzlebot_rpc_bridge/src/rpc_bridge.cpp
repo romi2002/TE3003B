@@ -14,16 +14,16 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/health_check_service_interface.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
-
+#include <google/protobuf/empty.pb.h>
 #include "Test.grpc.pb.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using helloworld::HelloRequest;
-using helloworld::HelloReply;
-using helloworld::Greeter;
+using robotonotos::GetImage;
+using robotonotos::ImageReply;
+using google::protobuf::Empty;
 using namespace std::chrono_literals;
 
 class BridgeSubscriber : public rclcpp::Node {
@@ -51,16 +51,14 @@ private:
   std::string recv_value_{"NA"};
 };
 
-class BridgeServiceImpl final : public Greeter::Service {
+class BridgeServiceImpl final : public GetImage::Service {
 public:
   BridgeServiceImpl(const std::shared_ptr<BridgeSubscriber> &node){
     node_ = node;
   }
 
-  Status SayHello(ServerContext* context, const HelloRequest* request,
-                  HelloReply* reply) override {
-    std::string prefix(node_->get_data());
-    reply->set_message(prefix + request->name());
+  Status SayHello(ServerContext* context, const Empty* empty_req,
+                  ImageReply* reply) override {
     return Status::OK;
   }
 private:
