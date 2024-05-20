@@ -14,9 +14,11 @@ class OdometryNode(Node):
     def __init__(self):
         super().__init__('odometry_node')
         
+        # Publisher to publish odometry
         self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
         qos = QoSProfile(depth=1, reliability=qos_profile_sensor_data.reliability)
         
+        # Subscribers to wheel velocities
         self.left_sub = self.create_subscription(
             Float32, 'VelocityEncL', self.left_callback, qos)
         self.right_sub = self.create_subscription(
@@ -29,13 +31,14 @@ class OdometryNode(Node):
         self.current_odom.pose.pose.position.y = 0.0
         self.current_odom.pose.pose.position.z = 0.0
         
-        self.yaw = 0.0
-        self.wl = 0.0
-        self.wr = 0.0
+        # Wheel variables
+        self.yaw = 0.0 # Current yaw angle
+        self.wl = 0.0 # Left wheel velocity
+        self.wr = 0.0 # Right wheel velocity
 
-        self.r = 0.05
-        self.l = 0.19
-        self.dt = 0.01
+        self.r = 0.05 # Radius of each wheel
+        self.l = 0.19 # Distance between the wheels (wheelbase)
+        self.dt = 0.01 # Time step
         
         self.timer = self.create_timer(self.dt, self.update)
         
@@ -59,19 +62,33 @@ class OdometryNode(Node):
         
         #self.get_logger().info(f"Wl: {self.wl} Wr: {self.wr} v: {v} omega: {omega} yaw: {self.yaw}")
         
+
+        # Update position
         self.current_odom.pose.pose.position.x += math.cos(self.yaw) * v * self.dt
         self.current_odom.pose.pose.position.y += math.sin(self.yaw) * v * self.dt
-        self.yaw += omega * self.dt
-        
+
+        # Update orientation
+        self.yaw += omega * self.dt # Update yaw
         quat = quaternion_from_euler(0, 0, self.yaw)
         self.current_odom.pose.pose.orientation.x = quat[0]
         self.current_odom.pose.pose.orientation.y = quat[1]
         self.current_odom.pose.pose.orientation.z = quat[2]
         self.current_odom.pose.pose.orientation.w = quat[3]
         
+
+        # Set linear and angular velocity
         self.current_odom.twist.twist.linear.x = v
         self.current_odom.twist.twist.angular.z = omega
         
+        # Calculate Jacobian
+        H_k = np.array([
+            [1, 0, -v * math.sin(self.yaw) * self.dt],
+            [0, 1, v * math.cos(self.yaw) * self.dt],
+            [0, 0, 1]
+        ])
+        # DEfine the error covariance matrix
+        Q_k = np.diag([0.01, 0.01, 0.01])
+
         # Set pose covariance (example values)
         self.current_odom.pose.covariance = [
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
