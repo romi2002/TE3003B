@@ -25,11 +25,11 @@ class PathController : public rclcpp::Node {
             // TODO Target yaw
           this->target_x = msg.pose.position.x;
           this->target_y = msg.pose.position.y;
-          tf2::Quaternion q;
-          tf2::fromMsg(msg.pose.orientation, q);
-          tf2::Matrix3x3 m(q);
-          double roll, pitch;
-          m.getRPY(roll, pitch, this->target_yaw);
+          // tf2::Quaternion q;
+          // tf2::fromMsg(msg.pose.orientation, q);
+          // tf2::Matrix3x3 m(q);
+          // double roll, pitch;
+          // m.getRPY(roll, pitch, this->target_yaw);
         }
     );
 
@@ -90,17 +90,17 @@ class PathController : public rclcpp::Node {
     }
 
     // /// Get RPY from transform quaternion.
-    // tf2::Quaternion q;
-    // tf2::fromMsg(transformStamped.transform.rotation, q);
-    // tf2::Matrix3x3 m(q);
-    // double roll, pitch, yaw;
-    // m.getRPY(roll, pitch, yaw);
+    tf2::Quaternion q;
+    tf2::fromMsg(transformStamped.transform.rotation, q);
+    tf2::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
 
     // Compute error distance and angle to target
     double error_x = target_x - transformStamped.transform.translation.x;
     double error_y = target_y - transformStamped.transform.translation.y;
     double distance = std::hypot(error_x, error_y);
-    double angle = wrapAngle(std::atan2(error_y, error_x) - target_yaw);
+    double angle = wrapAngle(std::atan2(error_y, error_x) - yaw);
 
     // Compute velocities with proportional control
     //ki_r = 0;
