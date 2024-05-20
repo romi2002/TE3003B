@@ -45,13 +45,11 @@ class OdometryNode(Node):
         self.get_logger().info("Finished initializing odometry.")
     
     def left_callback(self, msg):
-        self.wl = -msg.data
-        self.get_logger().info(f"Wl: {self.wl}")
+        self.wl = msg.data
     
     def right_callback(self, msg):
-        self.wr = -msg.data
-        self.get_logger().info(f"Wr: {self.wr}")
-    
+        self.wr = msg.data
+
     def update(self):
         # r = 0.05  # wheel radius
         # l = 0.19  # wheel base

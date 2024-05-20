@@ -76,8 +76,8 @@ class PathController : public rclcpp::Node {
   }
 
   void update() {
-    // Hardcoded for now :)
-    double dt = 0.01;
+    auto now = this->get_clock()->now();
+    double dt = (now - last_time_).seconds();
 
     geometry_msgs::msg::TransformStamped transformStamped;
     try{
@@ -89,7 +89,7 @@ class PathController : public rclcpp::Node {
       return;
     }
 
-    /// Get RPY from transform quaternion.
+    // /// Get RPY from transform quaternion.
     // tf2::Quaternion q;
     // tf2::fromMsg(transformStamped.transform.rotation, q);
     // tf2::Matrix3x3 m(q);
@@ -103,8 +103,8 @@ class PathController : public rclcpp::Node {
     double angle = wrapAngle(std::atan2(error_y, error_x) - target_yaw);
 
     // Compute velocities with proportional control
-    ki_r = 0;
-    ki_u = 0;
+    //ki_r = 0;
+    //ki_u = 0;
     double u = distance * std::cos(angle) * k_u;
     double r = angle * k_r;
     //RCLCPP_INFO(this->get_logger(), "U: %f R: %f error_x: %f error_y: %f yaw: %f angle: %f", u, r, error_x, error_y, yaw, angle);

@@ -44,6 +44,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/cmd_vel_node.py
   src/odometry_node.py
+  scripts/set_point.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -51,6 +52,7 @@ install(DIRECTORY
   launch
   urdf
   models
+  config
   DESTINATION share/${PROJECT_NAME}/
 )
 
