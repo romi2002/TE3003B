@@ -8,6 +8,7 @@ from slam.occupancy_grid import OccupancyGrid
 from slam.particle import Particle
 from slam.scan import Scan
 from line_profiler import profile
+from concurrent.futures import ThreadPoolExecutor
 
 # Probabilistic robotics, Table 13.4 P 478
 class FastSLAM:
@@ -80,23 +81,52 @@ class FastSLAM:
             q = q * FastSLAM.prob_centered_gaussian(distance, 0.01)
         return q
 
+    def process_particle(self, particle, u, pose, scan):
+        # Initialize pose.
+        if particle.pose is None:
+            particle.pose = pose
+
+        # Sample_motion_model
+        particle.pose = self.sample_motion_model(u, particle.pose)
+        if particle.map is None:
+            particle.map = OccupancyGrid()
+
+        # Measurement_model_map
+        search_cell = particle.map.coordinate_to_cell(pose[0], pose[1])
+        particle.like_field = LikelihoodField(particle.map, search_cell, max_range=scan.range_max / particle.map.map_resolution)
+        particle.weight = self.measurement_model_map(scan, particle.pose, particle.map, particle.like_field)
+
+        # updated_occupancy_grid
+        particle.map.update(particle.pose, scan)
+
     @profile
     def update(self, u, pose, scan):
         # Sample motion model and create particles
+        with ThreadPoolExecutor() as executor:
+            for particle in self.particles:
+                executor.submit(self.process_particle, particle, u, pose, scan)
+        # Normalize, and sample particles based off weight
+        weights = np.array([p.weight for p in self.particles])
+        weights = weights / np.sum(weights)
+
+        # low variance sampler for particles p.86
+        resampled_indexes = []
+        r = np.random.rand() * (1 / len(self.particles))
+        c = weights[0]
+        i = 0
+        for i, particle in enumerate(self.particles):
+            u = r + i * (1 / len(self.particles))
+            j = i
+            while u > c:
+                j += 1
+                c += weights[j]
+            resampled_indexes.append(j)
+        # Prune such that only particles in resampled_indexes are kept
+        self.particles = [p for i, p in enumerate(self.particles) if i in resampled_indexes]
+        
+        # Compute unweighted (?) average of state
+        out_pose = np.zeros(3)
         for particle in self.particles:
-            # Initialize pose.
-            if particle.pose is None:
-                particle.pose = pose
-
-            # Sample_motion_model
-            particle.pose = self.sample_motion_model(u, particle.pose)
-            if particle.map is None:
-                particle.map = OccupancyGrid()
-
-            # Measurement_model_map
-            search_cell = particle.map.coordinate_to_cell(pose[0], pose[1])
-            particle.like_field = LikelihoodField(particle.map, search_cell, max_range=scan.range_max / particle.map.map_resolution)
-            particle.weight = self.measurement_model_map(scan, particle.pose, particle.map, particle.like_field)
-
-            # updated_occupancy_grid
-            particle.map.update(particle.pose, scan)
+            out_pose += particle.pose
+        out_pose /= len(self.particles)
+        return out_pose
