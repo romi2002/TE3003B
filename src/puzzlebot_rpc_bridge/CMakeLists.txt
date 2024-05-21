@@ -19,6 +19,8 @@ add_subdirectory(proto)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(JPEG REQUIRED)
 
 add_executable(rpc_bridge src/rpc_bridge.cpp)
 ament_target_dependencies(rpc_bridge rclcpp std_msgs)
@@ -27,7 +29,10 @@ target_link_libraries(rpc_bridge
   gRPC::grpc++ 
   gRPC::grpc
   gRPC::grpc++_reflection
+  Boost::boost
+  ${JPEG_LIBRARIES}
 )
+target_include_directories(rpc_bridge PRIVATE ${Boost_INCLUDE_DIRS})
 
 add_executable(test_node src/test_node.cpp)
 ament_target_dependencies(test_node rclcpp std_msgs)

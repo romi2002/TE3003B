@@ -8,6 +8,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
 package robotonotos;
+option go_package = "robotonotos.com/grpc-gateway/proto";
 
 // The greeting service definition.
 service RobotState {
@@ -21,7 +22,7 @@ service RobotState {
 }
 
 message ImageReply {
-    bytes b64img = 1;
+    bytes img = 1;
     uint32 width = 2;
     uint32 height = 3;
 }

@@ -15,13 +15,18 @@
 #include <grpcpp/health_check_service_interface.h>
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <google/protobuf/empty.pb.h>
-#include "Test.grpc.pb.h"
+#include "RobotState.grpc.pb.h"
+
+#include <boost/gil/extension/dynamic_image/any_image.hpp>
+#include <boost/gil/extension/io/jpeg.hpp>
+#include <boost/mpl/vector.hpp>
+
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using robotonotos::GetImage;
+using robotonotos::RobotState;
 using robotonotos::ImageReply;
 using google::protobuf::Empty;
 using namespace std::chrono_literals;
@@ -51,14 +56,21 @@ private:
   std::string recv_value_{"NA"};
 };
 
-class BridgeServiceImpl final : public GetImage::Service {
+class BridgeServiceImpl final : public RobotState::Service {
 public:
   BridgeServiceImpl(const std::shared_ptr<BridgeSubscriber> &node){
     node_ = node;
   }
 
-  Status SayHello(ServerContext* context, const Empty* empty_req,
+  Status GetImage(ServerContext* context, const Empty* empty_req,
                   ImageReply* reply) override {
+    // Create (test image) and encode.
+    boost::gil::rgb8_image_t image(800, 600);
+    std::stringstream buffer(std::ios_base::out | std::ios_base::binary);
+    boost::gil::write_view(buffer, view(image), boost::gil::jpeg_tag());
+    reply->set_width(800);
+    reply->set_height(600);
+    *reply->mutable_img() = buffer.str();
     return Status::OK;
   }
 private:
