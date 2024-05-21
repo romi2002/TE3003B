@@ -39,6 +39,10 @@ class OdometryNode(Node):
         self.r = 0.05 # Radius of each wheel
         self.l = 0.19 # Distance between the wheels (wheelbase)
         self.dt = 0.01 # Time step
+
+        # Constants for error model
+        self.kr = 0.00001  # Error coefficient for the right wheel
+        self.kl = 0.00001  # Error coefficient for the left wheel
         
         self.timer = self.create_timer(self.dt, self.update)
         
@@ -51,16 +55,14 @@ class OdometryNode(Node):
         self.wr = msg.data
 
     def update(self):
-        # r = 0.05  # wheel radius
-        # l = 0.19  # wheel base
-        # dt = 0.01  # time step
         
         v = self.r * (self.wr + self.wl) / 2.0  # X Vel
         omega = self.r * (self.wr - self.wl) / self.l  # Angular vel
         
         #self.get_logger().info(f"Wl: {self.wl} Wr: {self.wr} v: {v} omega: {omega} yaw: {self.yaw}")
         
-
+        self.current_odom.header.frame_id = 'map'
+        self.current_odom.child_frame_id = 'odom'
         # Update position
         self.current_odom.pose.pose.position.x += math.cos(self.yaw) * v * self.dt
         self.current_odom.pose.pose.position.y += math.sin(self.yaw) * v * self.dt
@@ -73,11 +75,6 @@ class OdometryNode(Node):
         self.current_odom.pose.pose.orientation.z = quat[2]
         self.current_odom.pose.pose.orientation.w = quat[3]
         
-
-        # Set linear and angular velocity
-        self.current_odom.twist.twist.linear.x = v
-        self.current_odom.twist.twist.angular.z = omega
-        
         # Calculate Jacobian
         H_k = np.array([
             [1, 0, -v * math.sin(self.yaw) * self.dt],
@@ -85,31 +82,35 @@ class OdometryNode(Node):
             [0, 0, 1]
         ])
         # DEfine the error covariance matrix
-        Q_k = np.diag([0.01, 0.01, 0.01])
+        Q_k = np.diag([self.kr * abs(self.wr) * self.dt, 
+                       self.kl * abs(self.wl) * self.dt, 
+                       (self.kr * abs(self.wr) + self.kl * abs(self.wl)) * self.dt])
 
-        # Set pose covariance (example values)
-        self.current_odom.pose.covariance = [
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ]
+        # Update covariance matrix using the previous covariance matrix
+        if not hasattr(self, 'sigma'):
+            self.sigma = np.eye(3)  # Initializes the covariance matrix if it hasn't been defined
+
+        # Predict the new covariance matrix
+        self.sigma = H_k.dot(self.sigma).dot(H_k.T) + Q_k
+
+        # Extend 3x3 matrix to 6x6 for ROS compatibility
+        sigma_full = np.zeros((6, 6))
+        sigma_full[:3, :3] = self.sigma  # Fill in the 3x3 position covariance
+        sigma_full[3, 3] = 0.001  # Small value for orientation around x (roll)
+        sigma_full[4, 4] = 0.001  # Small value for orientation around y (pitch)
+        sigma_full[5, 5] = 0.001  # Small value for orientation around z (yaw)
         
-        # Set twist covariance (example values)
-        self.current_odom.twist.covariance = [
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ]
+        # Set pose covariance (example values)
+        self.current_odom.pose.covariance = sigma_full.flatten().tolist()  # Set the pose covariance matrix as a list
+        
+        # Set linear and angular velocity
+        self.current_odom.twist.twist.linear.x = v
+        self.current_odom.twist.twist.angular.z = omega
         
         self.current_odom.header.stamp = self.get_clock().now().to_msg()
         self.odom_pub.publish(self.current_odom)
         
+        # Publish the transform
         transform_stamped = TransformStamped()
         transform_stamped.header.stamp = self.get_clock().now().to_msg()
         transform_stamped.header.frame_id = 'map'
