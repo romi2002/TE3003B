@@ -20,15 +20,12 @@ find_package(ament_cmake_python REQUIRED)
 add_executable(controller_node src/controller_node.cpp)
 add_executable(kinematic_node src/kinematic_sim.cpp)
 add_executable(joint_state_node src/joint_state_publisher_node.cpp)
+add_executable(potential_field_node src/potential_field_node.cpp)
+add_executable(odometry_node src/odometry_node.cpp)
 ament_target_dependencies(controller_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs)
 ament_target_dependencies(kinematic_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs std_msgs)
 ament_target_dependencies(joint_state_node rclcpp geometry_msgs sensor_msgs tf2_geometry_msgs std_msgs)
-
-
-add_executable(potential_field_node src/potential_field_node.cpp)
 ament_target_dependencies(potential_field_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs)
-
-add_executable(odometry_node src/odometry_node.cpp)
 ament_target_dependencies(odometry_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs nav_msgs)
 
 INSTALL(TARGETS
@@ -53,6 +50,7 @@ install(DIRECTORY
   urdf
   models
   config
+  rviz
   DESTINATION share/${PROJECT_NAME}/
 )
 

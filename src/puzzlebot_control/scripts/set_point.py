@@ -52,7 +52,7 @@ class SetPointPublisher(Node):
             target_y = self.points[self.current_index]['y']
 
             distance = math.sqrt((target_x - current_x)**2 + (target_y - current_y)**2)
-            print(distance)
+            # print(distance)
 
             if distance < self.tolerance:
                 self.target_reached = True

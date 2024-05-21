@@ -25,11 +25,6 @@ class PathController : public rclcpp::Node {
             // TODO Target yaw
           this->target_x = msg.pose.position.x;
           this->target_y = msg.pose.position.y;
-          // tf2::Quaternion q;
-          // tf2::fromMsg(msg.pose.orientation, q);
-          // tf2::Matrix3x3 m(q);
-          // double roll, pitch;
-          // m.getRPY(roll, pitch, this->target_yaw);
         }
     );
 
