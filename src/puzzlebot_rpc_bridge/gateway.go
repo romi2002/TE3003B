@@ -9,6 +9,7 @@ import (
 
         "google.golang.org/grpc"
         "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+        "github.com/rs/cors"
         gw "robotonotos.com/grpc-gateway/proto"
 
 )
@@ -19,18 +20,35 @@ var (
 
 )
 
+func enableCors(h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+
+        h.ServeHTTP(w, r)
+    })
+}
+
 func run() error {
         ctx := context.Background()
         ctx, cancel := context.WithCancel(ctx)
         defer cancel()
 
         mux := runtime.NewServeMux()
+        withCors := cors.New(cors.Options{
+        AllowOriginFunc:  func(origin string) bool { return true },
+        AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
+        AllowedHeaders:   []string{"ACCEPT", "Authorization", "Content-Type", "X-CSRF-Token"},
+        ExposedHeaders:   []string{"Link"},
+        AllowCredentials: true,
+        MaxAge:           300,
+        }).Handler(mux)
+
         opts := []grpc.DialOption{grpc.WithInsecure()}
-        err := gw.RegisterRPCDemoHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
+        err := gw.RegisterRobotStateHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
         if err != nil{
                 return err
         }
-        return http.ListenAndServe(":"+gw_port, mux)
+        return http.ListenAndServe(":"+gw_port, withCors)
 
 
 }
