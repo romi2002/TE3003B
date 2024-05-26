@@ -1,5 +1,5 @@
 import numpy as np
-from numba import njit
+import matplotlib.pyplot as plt
 
 from slam.scan import Scan
 from line_profiler import profile
@@ -8,7 +8,7 @@ class OccupancyGrid():
     def __init__(self):
         # Defined in meters
         self.map_size = (100, 100)
-        self.map_resolution = 1 / 5
+        self.map_resolution = 0.1
         self.map_origin = (-50, -50)
         self.log_prob_map = np.zeros([
             int(self.map_size[0] / self.map_resolution),
@@ -109,6 +109,17 @@ class OccupancyGrid():
     def get_map(self):
         return 1 - 1 / (1 + np.exp(np.clip(self.log_prob_map, -10, 10)))
 
+    def debug_plot(self, pose, obstacle_cells, free_cells, show_cells=True):
+        fig, ax = plt.subplots(figsize=(32,32))
+        ax.imshow(self.get_map())
+        ax.set_title("occupancy grid")
+        if show_cells:
+            ax.scatter(*zip(*free_cells), s=1, c='b')
+        ax.scatter(*self.coordinate_to_cell(pose[0], pose[1]), s=10, c='g', marker="^")
+        if show_cells:
+            ax.scatter(*zip(*obstacle_cells), s=1, c='r')
+        plt.show()
+
     @profile
     def update(self, pose, scan: Scan):
         obstacle_cells, free_cells = self.update_cells(pose, scan)
@@ -118,3 +129,4 @@ class OccupancyGrid():
         for (x, y) in filter(self.is_valid_cell_coordinate, free_cells):
             self.log_prob_map[int(x), int(y)] += self.prob(False)
             self.test_map[int(x), int(y)] = 0
+        # self.debug_plot(pose, obstacle_cells, free_cells, show_cells=False)

@@ -6,12 +6,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(Protobuf REQUIRED)
-find_package(gRPC CONFIG REQUIRED)
-message(STATUS "gRPC version: ${gRPC_VERSION}")
-get_target_property(GRPC_CPP_LIBRARY gRPC::grpc++ LOCATION)
-message(STATUS "gRPC C++ library location: ${GRPC_CPP_LIBRARY}")
-get_target_property(GRPC_CPP_INCLUDE_DIRS gRPC::grpc++ INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS "gRPC C++ include directories: ${GRPC_CPP_INCLUDE_DIRS}")
+
+include(FetchContent)
+FetchContent_Declare(
+  gRPC
+  GIT_REPOSITORY https://github.com/grpc/grpc
+  GIT_TAG        v1.40.0
+)
+set(FETCHCONTENT_QUIET OFF)
+FetchContent_MakeAvailable(gRPC)
 
 add_subdirectory(proto)
 
@@ -26,11 +29,9 @@ add_executable(rpc_bridge src/rpc_bridge.cpp)
 ament_target_dependencies(rpc_bridge rclcpp std_msgs)
 target_link_libraries(rpc_bridge 
   puzzlebot_proto  
-  gRPC::grpc++ 
-  gRPC::grpc
-  gRPC::grpc++_reflection
   Boost::boost
   ${JPEG_LIBRARIES}
+  grpc++
 )
 target_include_directories(rpc_bridge PRIVATE ${Boost_INCLUDE_DIRS})
 
