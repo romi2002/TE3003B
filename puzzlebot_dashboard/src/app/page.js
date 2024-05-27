@@ -1,32 +1,28 @@
-'use client'
-import useSWR from "swr";
-import { useState, useEffect } from 'react'
-import axios from 'axios';
+// pages/BackgroundPage.js
 
-const fetcher = async (api, data) => {
-  try {
-    const response = await axios.post(api, data);
-    console.log(response)
-    return response.data;
-  } catch (error) {
-    console.error('Error', error);
-  }
-};
+import Head from 'next/head';
+import Link from 'next/link';
 
-export default function Home() {
-  const { data: image_data, error, isLoading } = useSWR("http://localhost:8042/robot_state/image", fetcher, {refreshInterval: 10, dedupingInterval: 5});
-
-  console.log(image_data)
+export default function BackgroundPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <h1 className="text-4xl">Puzzlebot Dashboard</h1>
-        {isLoading && <p>Loading...</p>}
-        {error && <p>Error: {error}</p>}
-        {image_data && (
-          <img src={`data:image/jpeg;base64,${image_data.imgB64}`} alt="Robot Image" />
-        )}
+    <div className="bg-contain bg-center min-h-screen flex flex-col items-center justify-center relative" style={{backgroundImage: "url('https://manchester-robotics.com/wp-content/uploads/puzzle-3-edited-1024x1024.jpg')"}}>
+      <Head>
+        <title>Background Page</title>
+      </Head>
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black bg-opacity-30">
+        <div className="p-8 rounded-lg text-white">
+          <h1 className="text-4xl font-bold">Puzzlebot Dashboard</h1>
+          <p className="text-lg mt-2">This is the home page, view the options</p>
+          <div className="mt-8 space-x-10">
+            <Link href="/imagen">
+              <button className="text-white bg-blue-500 px-5 py-2 rounded-md mr-4 hover:bg-slate-800">Imagen</button>
+            </Link>
+            <Link href="/datos">
+              <button className="text-white bg-blue-500 px-5 py-2 rounded-md hover:bg-slate-800">Datos</button>
+            </Link>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
