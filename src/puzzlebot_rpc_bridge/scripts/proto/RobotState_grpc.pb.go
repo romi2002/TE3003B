@@ -20,7 +20,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	RobotState_GetImage_FullMethodName = "/robotonotos.RobotState/GetImage"
+	RobotState_GetImage_FullMethodName    = "/robotonotos.RobotState/GetImage"
+	RobotState_GetVelocity_FullMethodName = "/robotonotos.RobotState/GetVelocity"
+	RobotState_GetLidar_FullMethodName    = "/robotonotos.RobotState/GetLidar"
 )
 
 // RobotStateClient is the client API for RobotState service.
@@ -29,6 +31,8 @@ const (
 type RobotStateClient interface {
 	// Sends a greeting
 	GetImage(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ImageReply, error)
+	GetVelocity(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*VelocityReply, error)
+	GetLidar(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*LidarReply, error)
 }
 
 type robotStateClient struct {
@@ -48,12 +52,32 @@ func (c *robotStateClient) GetImage(ctx context.Context, in *empty.Empty, opts .
 	return out, nil
 }
 
+func (c *robotStateClient) GetVelocity(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*VelocityReply, error) {
+	out := new(VelocityReply)
+	err := c.cc.Invoke(ctx, RobotState_GetVelocity_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *robotStateClient) GetLidar(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*LidarReply, error) {
+	out := new(LidarReply)
+	err := c.cc.Invoke(ctx, RobotState_GetLidar_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RobotStateServer is the server API for RobotState service.
 // All implementations must embed UnimplementedRobotStateServer
 // for forward compatibility
 type RobotStateServer interface {
 	// Sends a greeting
 	GetImage(context.Context, *empty.Empty) (*ImageReply, error)
+	GetVelocity(context.Context, *empty.Empty) (*VelocityReply, error)
+	GetLidar(context.Context, *empty.Empty) (*LidarReply, error)
 	mustEmbedUnimplementedRobotStateServer()
 }
 
@@ -63,6 +87,12 @@ type UnimplementedRobotStateServer struct {
 
 func (UnimplementedRobotStateServer) GetImage(context.Context, *empty.Empty) (*ImageReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetImage not implemented")
+}
+func (UnimplementedRobotStateServer) GetVelocity(context.Context, *empty.Empty) (*VelocityReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVelocity not implemented")
+}
+func (UnimplementedRobotStateServer) GetLidar(context.Context, *empty.Empty) (*LidarReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLidar not implemented")
 }
 func (UnimplementedRobotStateServer) mustEmbedUnimplementedRobotStateServer() {}
 
@@ -95,6 +125,42 @@ func _RobotState_GetImage_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RobotState_GetVelocity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(empty.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RobotStateServer).GetVelocity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RobotState_GetVelocity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RobotStateServer).GetVelocity(ctx, req.(*empty.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RobotState_GetLidar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(empty.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RobotStateServer).GetLidar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RobotState_GetLidar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RobotStateServer).GetLidar(ctx, req.(*empty.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RobotState_ServiceDesc is the grpc.ServiceDesc for RobotState service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -105,6 +171,14 @@ var RobotState_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetImage",
 			Handler:    _RobotState_GetImage_Handler,
+		},
+		{
+			MethodName: "GetVelocity",
+			Handler:    _RobotState_GetVelocity_Handler,
+		},
+		{
+			MethodName: "GetLidar",
+			Handler:    _RobotState_GetLidar_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

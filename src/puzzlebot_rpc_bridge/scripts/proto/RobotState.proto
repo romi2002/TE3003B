@@ -19,10 +19,34 @@ service RobotState {
         body: "*"
     };
   }
+  rpc GetVelocity (google.protobuf.Empty) returns (VelocityReply) {
+    option(google.api.http) = {
+        post: "/robot_state/velocity"
+        body: "*"
+    };
+  }
+  rpc GetLidar (google.protobuf.Empty) returns (LidarReply) {
+    option(google.api.http) = {
+        post: "/robot_state/scan"
+        body: "*"
+    };
+  }
 }
 
 message ImageReply {
     string img_b64 = 1;
     uint32 width = 2;
     uint32 height = 3;
+}
+
+message VelocityReply {
+    float encL = 1;
+    float encR = 2;
+}
+
+message LidarReply {
+    float angle_min = 1;
+    float angle_max = 2;
+    repeated float range = 3;
+    float range_max = 4;
 }

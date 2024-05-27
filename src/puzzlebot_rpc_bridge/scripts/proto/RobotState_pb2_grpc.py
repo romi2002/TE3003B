@@ -46,6 +46,16 @@ class RobotStateStub(object):
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=RobotState__pb2.ImageReply.FromString,
                 _registered_method=True)
+        self.GetVelocity = channel.unary_unary(
+                '/robotonotos.RobotState/GetVelocity',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=RobotState__pb2.VelocityReply.FromString,
+                _registered_method=True)
+        self.GetLidar = channel.unary_unary(
+                '/robotonotos.RobotState/GetLidar',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=RobotState__pb2.LidarReply.FromString,
+                _registered_method=True)
 
 
 class RobotStateServicer(object):
@@ -59,6 +69,18 @@ class RobotStateServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetVelocity(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetLidar(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_RobotStateServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -66,6 +88,16 @@ def add_RobotStateServicer_to_server(servicer, server):
                     servicer.GetImage,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                     response_serializer=RobotState__pb2.ImageReply.SerializeToString,
+            ),
+            'GetVelocity': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetVelocity,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=RobotState__pb2.VelocityReply.SerializeToString,
+            ),
+            'GetLidar': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetLidar,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=RobotState__pb2.LidarReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -96,6 +128,60 @@ class RobotState(object):
             '/robotonotos.RobotState/GetImage',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             RobotState__pb2.ImageReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetVelocity(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/robotonotos.RobotState/GetVelocity',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            RobotState__pb2.VelocityReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetLidar(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/robotonotos.RobotState/GetLidar',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            RobotState__pb2.LidarReply.FromString,
             options,
             channel_credentials,
             insecure,
