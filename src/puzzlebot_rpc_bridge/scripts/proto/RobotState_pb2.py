@@ -16,7 +16,7 @@ from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10RobotState.proto\x12\x0brobotonotos\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\"<\n\nImageReply\x12\x0f\n\x07img_b64\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\r\x12\x0e\n\x06height\x18\x03 \x01(\r2h\n\nRobotState\x12Z\n\x08GetImage\x12\x16.google.protobuf.Empty\x1a\x17.robotonotos.ImageReply\"\x1d\x82\xd3\xe4\x93\x02\x17\"\x12/robot_state/image:\x01*BZ\n\x1bio.grpc.examples.helloworldB\x0fHelloWorldProtoP\x01Z\"robotonotos.com/grpc-gateway/proto\xa2\x02\x03HLWb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10RobotState.proto\x12\x0brobotonotos\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\"<\n\nImageReply\x12\x0f\n\x07img_b64\x18\x01 \x01(\t\x12\r\n\x05width\x18\x02 \x01(\r\x12\x0e\n\x06height\x18\x03 \x01(\r\"+\n\rVelocityReply\x12\x0c\n\x04\x65ncL\x18\x01 \x01(\x02\x12\x0c\n\x04\x65ncR\x18\x02 \x01(\x02\x32\xcd\x01\n\nRobotState\x12Z\n\x08GetImage\x12\x16.google.protobuf.Empty\x1a\x17.robotonotos.ImageReply\"\x1d\x82\xd3\xe4\x93\x02\x17\"\x12/robot_state/image:\x01*\x12\x63\n\x0bGetVelocity\x12\x16.google.protobuf.Empty\x1a\x1a.robotonotos.VelocityReply\" \x82\xd3\xe4\x93\x02\x1a\"\x15/robot_state/velocity:\x01*BZ\n\x1bio.grpc.examples.helloworldB\x0fHelloWorldProtoP\x01Z\"robotonotos.com/grpc-gateway/proto\xa2\x02\x03HLWb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -26,8 +26,12 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._serialized_options = b'\n\033io.grpc.examples.helloworldB\017HelloWorldProtoP\001Z\"robotonotos.com/grpc-gateway/proto\242\002\003HLW'
   _globals['_ROBOTSTATE'].methods_by_name['GetImage']._loaded_options = None
   _globals['_ROBOTSTATE'].methods_by_name['GetImage']._serialized_options = b'\202\323\344\223\002\027\"\022/robot_state/image:\001*'
+  _globals['_ROBOTSTATE'].methods_by_name['GetVelocity']._loaded_options = None
+  _globals['_ROBOTSTATE'].methods_by_name['GetVelocity']._serialized_options = b'\202\323\344\223\002\032\"\025/robot_state/velocity:\001*'
   _globals['_IMAGEREPLY']._serialized_start=92
   _globals['_IMAGEREPLY']._serialized_end=152
-  _globals['_ROBOTSTATE']._serialized_start=154
-  _globals['_ROBOTSTATE']._serialized_end=258
+  _globals['_VELOCITYREPLY']._serialized_start=154
+  _globals['_VELOCITYREPLY']._serialized_end=197
+  _globals['_ROBOTSTATE']._serialized_start=200
+  _globals['_ROBOTSTATE']._serialized_end=405
 # @@protoc_insertion_point(module_scope)

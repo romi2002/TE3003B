@@ -16,24 +16,33 @@ from cv_bridge import CvBridge
 
 import rclpy
 from rclpy.node import Node
+from rclpy import qos
 from sensor_msgs.msg import Image
+from std_msgs.msg import Float32
 
 import base64
 
 class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
     def __init__(self):
         Node.__init__(self, "robot_state_subscriber")
+        # ROS2 Subscribers
         self.image_sub = self.create_subscription(
             Image,
             "image_in",
             self.image_cb,
             10
         )
+        self.sub_encR = self.create_subscription(Float32,'VelocityEncR',self.encR_callback,qos.qos_profile_sensor_data) # Right wheel encoder velocity
+        self.sub_encL = self.create_subscription(Float32,'VelocityEncL',self.encL_callback,qos.qos_profile_sensor_data) # Left wheel encoder velocity
+        
         print("Initialized gRPC Server")
-        self.img_compressed = None
-        self.shape = None
-        self.bridge = CvBridge()
-        self.img_b64 = None
+        # Variables
+        self.img_compressed = None # Compressed image
+        self.shape = None # Image shape
+        self.bridge = CvBridge() # ROS-CV bridge
+        self.img_b64 = None # Base64 encoded image
+        self.velocityR = 0.0 # Right wheel encoder velocity
+        self.velocityL = 0.0 # Left wheel encoder velocity
 
     def image_cb(self, data):
         img_original = self.bridge.imgmsg_to_cv2(data)
@@ -53,6 +62,25 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         results.width = self.shape[1]
         results.height = self.shape[0]
         return results
+
+        
+    def encR_callback(self, msg):
+        self.velocityR = msg.data
+        
+    def encL_callback(self, msg):
+        self.velocityL = msg.data
+
+    def GetVelocity(self, request, context):
+        print("GetVelocity Got call: " + context.peer())
+
+        if self.velocityL is None or self.velocityR is None:
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details("No velocity has been received.")
+
+        results_vel = RobotState_pb2.VelocityReply()
+        results_vel.encL = self.velocityL
+        results_vel.encR = self.velocityR
+        return results_vel
 
 terminate = threading.Event()
 def terminate_server(signum, frame):

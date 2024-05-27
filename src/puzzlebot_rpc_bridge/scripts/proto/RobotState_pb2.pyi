@@ -15,3 +15,11 @@ class ImageReply(_message.Message):
     width: int
     height: int
     def __init__(self, img_b64: _Optional[str] = ..., width: _Optional[int] = ..., height: _Optional[int] = ...) -> None: ...
+
+class VelocityReply(_message.Message):
+    __slots__ = ("encL", "encR")
+    ENCL_FIELD_NUMBER: _ClassVar[int]
+    ENCR_FIELD_NUMBER: _ClassVar[int]
+    encL: float
+    encR: float
+    def __init__(self, encL: _Optional[float] = ..., encR: _Optional[float] = ...) -> None: ...
