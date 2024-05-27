@@ -1,0 +1,1 @@
+ArucoMarkers[] arucos_detected
