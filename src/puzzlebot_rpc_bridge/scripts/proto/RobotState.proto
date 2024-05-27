@@ -25,6 +25,12 @@ service RobotState {
         body: "*"
     };
   }
+  rpc GetLidarInfo (google.protobuf.Empty) returns (LidarReply) {
+    option(google.api.http) = {
+        post: "/robot_state/lidar"
+        body: "*"
+    };
+  }
 }
 
 message ImageReply {
@@ -36,4 +42,10 @@ message ImageReply {
 message VelocityReply {
     float encL = 1;
     float encR = 2;
+}
+
+message LidarReply {
+    float angle_min = 1;
+    float angle_max = 2;
+    repeated float range = 3;
 }
