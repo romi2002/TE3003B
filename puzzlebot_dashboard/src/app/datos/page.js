@@ -10,7 +10,7 @@ export default function BackgroundPage() {
         DATOS
       </h1>
       <Link href="/">
-              <button className="text-white bg-blue-500 px-5 py-2 rounded-md mr-4 hover:bg-slate-800">Inicio</button>
+              <button className="text-white bg-blue-500 px-5 py-2 rounded-md hover:bg-slate-800 hover:scale-110 transition duration-500 ease-in-out">Inicio</button>
         </Link>
     </div>
   );

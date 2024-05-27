@@ -28,7 +28,7 @@ export default function Home() {
           <img src={`data:image/jpeg;base64,${image_data.imgB64}`} alt="Robot Image" className="w-full max-w-screen-xl" />   /* Adjust max-width here */
         )}
         <Link href="/">
-          <button className="text-white bg-gray-200 bg-opacity-80 px-6 py-3 rounded-md mr-4 mt-20 hover:bg-slate-2000">Inicio</button>
+        <button className="text-white bg-blue-500 px-6 py-3 rounded-md mr-4 mt-20 hover:bg-slate-800 hover:scale-110 transition duration-500 ease-in-out">Inicio</button>        
         </Link>
       </div>
     </main>

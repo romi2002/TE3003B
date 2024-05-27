@@ -14,12 +14,12 @@ export default function BackgroundPage() {
           <h1 className="text-4xl font-bold">Puzzlebot Dashboard</h1>
           <p className="text-lg mt-2">This is the home page, view the options</p>
           <div className="mt-8 space-x-10">
-            <Link href="/imagen">
-              <button className="text-white bg-blue-500 px-5 py-2 rounded-md mr-4 hover:bg-slate-800">Imagen</button>
-            </Link>
-            <Link href="/datos">
-              <button className="text-white bg-blue-500 px-5 py-2 rounded-md hover:bg-slate-800">Datos</button>
-            </Link>
+          <Link href="/imagen">
+            <button className="text-white bg-blue-500 px-5 py-2 rounded-md hover:bg-slate-800 hover:scale-110 transition duration-500 ease-in-out">Imagen</button>
+          </Link>
+          <Link href="/datos">
+            <button className="text-white bg-blue-500 px-5 py-2 rounded-md hover:bg-slate-800 hover:scale-110 transition duration-500 ease-in-out">Datos</button>
+          </Link>
           </div>
         </div>
       </div>
