@@ -18,9 +18,14 @@ import rclpy
 from rclpy.node import Node
 from rclpy import qos
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
 
+import math
 import base64
+
+def rad2deg(x):
+    return x * 180.0 / math.pi
 
 class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
     def __init__(self):
@@ -35,6 +40,13 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         self.sub_encR = self.create_subscription(Float32,'VelocityEncR',self.encR_callback,qos.qos_profile_sensor_data) # Right wheel encoder velocity
         self.sub_encL = self.create_subscription(Float32,'VelocityEncL',self.encL_callback,qos.qos_profile_sensor_data) # Left wheel encoder velocity
         
+        self.lidar_info_sub = self.create_subscription(
+            LaserScan,
+            'scan',
+            self.scan_cb,
+            rclpy.qos.QoSProfile(rclpy.qos.QoSHistoryPolicy.KEEP_LAST, depth=10)
+        )
+
         print("Initialized gRPC Server")
         # Variables
         self.img_compressed = None # Compressed image
@@ -43,6 +55,7 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         self.img_b64 = None # Base64 encoded image
         self.velocityR = None # Right wheel encoder velocity
         self.velocityL = None # Left wheel encoder velocity
+        self.scan = None # Lidar scan
 
     def image_cb(self, data):
         img_original = self.bridge.imgmsg_to_cv2(data)
@@ -63,7 +76,6 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         results.height = self.shape[0]
         return results
 
-        
     def encR_callback(self, msg):
         self.velocityR = msg.data
         
@@ -81,6 +93,32 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         results_vel.encL = self.velocityL
         results_vel.encR = self.velocityR
         return results_vel
+
+    def scan_cb(self, scan):
+        # count = int(scan.scan_time / scan.time_increment)
+        # self.get_logger().info(f'I heard a laser scan {scan.header.frame_id}[{count}]:')
+        # self.get_logger().info(f'angle_range : [{rad2deg(scan.angle_min)}, {rad2deg(scan.angle_max)}]')
+
+        # for i in range(count):
+        #     degree = rad2deg(scan.angle_min + scan.angle_increment * i)
+        #     self.get_logger().info(f'angle-distance : [{degree}, {scan.ranges[i]}]')
+        self.scan = scan
+
+    
+    def GetLidar(self, request, context):
+        print("GetLidar Got call: " + context.peer())
+
+        if self.scan is None:
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details("No LiDAR info has been received.")
+
+        results_lidar = RobotState_pb2.LidarReply()
+        results_lidar.angle_min = self.scan.angle_min
+        results_lidar.angle_max = self.scan.angle_max
+        results_lidar.ranges = self.scan.ranges
+        return results_lidar
+
+
 
 terminate = threading.Event()
 def terminate_server(signum, frame):
