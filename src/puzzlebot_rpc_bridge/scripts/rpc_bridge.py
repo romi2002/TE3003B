@@ -44,7 +44,7 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
             LaserScan,
             'scan',
             self.scan_cb,
-            rclpy.qos.QoSProfile(rclpy.qos.QoSHistoryPolicy.KEEP_LAST, depth=10)
+            10
         )
 
         print("Initialized gRPC Server")
@@ -95,16 +95,8 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         return results_vel
 
     def scan_cb(self, scan):
-        # count = int(scan.scan_time / scan.time_increment)
-        # self.get_logger().info(f'I heard a laser scan {scan.header.frame_id}[{count}]:')
-        # self.get_logger().info(f'angle_range : [{rad2deg(scan.angle_min)}, {rad2deg(scan.angle_max)}]')
-
-        # for i in range(count):
-        #     degree = rad2deg(scan.angle_min + scan.angle_increment * i)
-        #     self.get_logger().info(f'angle-distance : [{degree}, {scan.ranges[i]}]')
         self.scan = scan
 
-    
     def GetLidar(self, request, context):
         print("GetLidar Got call: " + context.peer())
 
@@ -115,9 +107,9 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         results_lidar = RobotState_pb2.LidarReply()
         results_lidar.angle_min = self.scan.angle_min
         results_lidar.angle_max = self.scan.angle_max
-        results_lidar.ranges = self.scan.ranges
+        results_lidar.range.extend(self.scan.ranges)
+        results_lidar.range_max = self.scan.range_max
         return results_lidar
-
 
 
 terminate = threading.Event()

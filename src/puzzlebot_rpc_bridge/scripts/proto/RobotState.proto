@@ -25,9 +25,9 @@ service RobotState {
         body: "*"
     };
   }
-  rpc GetLidarInfo (google.protobuf.Empty) returns (LidarReply) {
+  rpc GetLidar (google.protobuf.Empty) returns (LidarReply) {
     option(google.api.http) = {
-        post: "/robot_state/lidar"
+        post: "/robot_state/scan"
         body: "*"
     };
   }
@@ -48,4 +48,5 @@ message LidarReply {
     float angle_min = 1;
     float angle_max = 2;
     repeated float range = 3;
+    float range_max = 4;
 }

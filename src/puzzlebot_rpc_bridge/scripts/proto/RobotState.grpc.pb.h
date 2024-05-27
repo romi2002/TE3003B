@@ -52,6 +52,13 @@ class RobotState final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>> PrepareAsyncGetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>>(PrepareAsyncGetVelocityRaw(context, request, cq));
     }
+    virtual ::grpc::Status GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::robotonotos::LidarReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::LidarReply>> AsyncGetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::LidarReply>>(AsyncGetLidarRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::LidarReply>> PrepareAsyncGetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::LidarReply>>(PrepareAsyncGetLidarRaw(context, request, cq));
+    }
     class experimental_async_interface {
      public:
       virtual ~experimental_async_interface() {}
@@ -80,6 +87,18 @@ class RobotState final {
       #else
       virtual void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
       #endif
+      virtual void GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetLidar(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::LidarReply* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void GetLidar(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::LidarReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void GetLidar(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::LidarReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
     };
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     typedef class experimental_async_interface async_interface;
@@ -93,6 +112,8 @@ class RobotState final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::ImageReply>* PrepareAsyncGetImageRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>* AsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>* PrepareAsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::LidarReply>* AsyncGetLidarRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::LidarReply>* PrepareAsyncGetLidarRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -110,6 +131,13 @@ class RobotState final {
     }
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>> PrepareAsyncGetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>>(PrepareAsyncGetVelocityRaw(context, request, cq));
+    }
+    ::grpc::Status GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::robotonotos::LidarReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::LidarReply>> AsyncGetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::LidarReply>>(AsyncGetLidarRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::LidarReply>> PrepareAsyncGetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::LidarReply>>(PrepareAsyncGetLidarRaw(context, request, cq));
     }
     class experimental_async final :
       public StubInterface::experimental_async_interface {
@@ -138,6 +166,18 @@ class RobotState final {
       #else
       void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
       #endif
+      void GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response, std::function<void(::grpc::Status)>) override;
+      void GetLidar(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::LidarReply* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void GetLidar(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void GetLidar(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::LidarReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void GetLidar(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::LidarReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -153,8 +193,11 @@ class RobotState final {
     ::grpc::ClientAsyncResponseReader< ::robotonotos::ImageReply>* PrepareAsyncGetImageRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>* AsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>* PrepareAsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::robotonotos::LidarReply>* AsyncGetLidarRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::robotonotos::LidarReply>* PrepareAsyncGetLidarRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_GetImage_;
     const ::grpc::internal::RpcMethod rpcmethod_GetVelocity_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetLidar_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -165,6 +208,7 @@ class RobotState final {
     // Sends a greeting
     virtual ::grpc::Status GetImage(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::robotonotos::ImageReply* response);
     virtual ::grpc::Status GetVelocity(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response);
+    virtual ::grpc::Status GetLidar(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_GetImage : public BaseClass {
@@ -206,7 +250,27 @@ class RobotState final {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_GetImage<WithAsyncMethod_GetVelocity<Service > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_GetLidar : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetLidar() {
+      ::grpc::Service::MarkMethodAsync(2);
+    }
+    ~WithAsyncMethod_GetLidar() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetLidar(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetLidar(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::robotonotos::LidarReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_GetImage<WithAsyncMethod_GetVelocity<WithAsyncMethod_GetLidar<Service > > > AsyncService;
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_GetImage : public BaseClass {
    private:
@@ -301,11 +365,58 @@ class RobotState final {
     #endif
       { return nullptr; }
   };
+  template <class BaseClass>
+  class ExperimentalWithCallbackMethod_GetLidar : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithCallbackMethod_GetLidar() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(2,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::robotonotos::LidarReply>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::google::protobuf::Empty* request, ::robotonotos::LidarReply* response) { return this->GetLidar(context, request, response); }));}
+    void SetMessageAllocatorFor_GetLidar(
+        ::grpc::experimental::MessageAllocator< ::google::protobuf::Empty, ::robotonotos::LidarReply>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(2);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::robotonotos::LidarReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~ExperimentalWithCallbackMethod_GetLidar() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetLidar(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* GetLidar(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* GetLidar(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/)
+    #endif
+      { return nullptr; }
+  };
   #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
-  typedef ExperimentalWithCallbackMethod_GetImage<ExperimentalWithCallbackMethod_GetVelocity<Service > > CallbackService;
+  typedef ExperimentalWithCallbackMethod_GetImage<ExperimentalWithCallbackMethod_GetVelocity<ExperimentalWithCallbackMethod_GetLidar<Service > > > CallbackService;
   #endif
 
-  typedef ExperimentalWithCallbackMethod_GetImage<ExperimentalWithCallbackMethod_GetVelocity<Service > > ExperimentalCallbackService;
+  typedef ExperimentalWithCallbackMethod_GetImage<ExperimentalWithCallbackMethod_GetVelocity<ExperimentalWithCallbackMethod_GetLidar<Service > > > ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_GetImage : public BaseClass {
    private:
@@ -336,6 +447,23 @@ class RobotState final {
     }
     // disable synchronous version of this method
     ::grpc::Status GetVelocity(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetLidar : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetLidar() {
+      ::grpc::Service::MarkMethodGeneric(2);
+    }
+    ~WithGenericMethod_GetLidar() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetLidar(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -378,6 +506,26 @@ class RobotState final {
     }
     void RequestGetVelocity(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_GetLidar : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetLidar() {
+      ::grpc::Service::MarkMethodRaw(2);
+    }
+    ~WithRawMethod_GetLidar() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetLidar(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetLidar(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -457,6 +605,44 @@ class RobotState final {
       { return nullptr; }
   };
   template <class BaseClass>
+  class ExperimentalWithRawCallbackMethod_GetLidar : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithRawCallbackMethod_GetLidar() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(2,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetLidar(context, request, response); }));
+    }
+    ~ExperimentalWithRawCallbackMethod_GetLidar() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetLidar(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* GetLidar(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* GetLidar(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_GetImage : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -510,9 +696,36 @@ class RobotState final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedGetVelocity(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::robotonotos::VelocityReply>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_GetImage<WithStreamedUnaryMethod_GetVelocity<Service > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetLidar : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetLidar() {
+      ::grpc::Service::MarkMethodStreamed(2,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::google::protobuf::Empty, ::robotonotos::LidarReply>(
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
+                     ::google::protobuf::Empty, ::robotonotos::LidarReply>* streamer) {
+                       return this->StreamedGetLidar(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetLidar() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetLidar(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::LidarReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetLidar(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::robotonotos::LidarReply>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_GetImage<WithStreamedUnaryMethod_GetVelocity<WithStreamedUnaryMethod_GetLidar<Service > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_GetImage<WithStreamedUnaryMethod_GetVelocity<Service > > StreamedService;
+  typedef WithStreamedUnaryMethod_GetImage<WithStreamedUnaryMethod_GetVelocity<WithStreamedUnaryMethod_GetLidar<Service > > > StreamedService;
 };
 
 }  // namespace robotonotos
