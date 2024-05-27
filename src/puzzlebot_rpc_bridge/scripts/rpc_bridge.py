@@ -41,8 +41,8 @@ class RobotStateImpl(RobotState_pb2_grpc.RobotStateServicer, Node):
         self.shape = None # Image shape
         self.bridge = CvBridge() # ROS-CV bridge
         self.img_b64 = None # Base64 encoded image
-        self.velocityR = 0.0 # Right wheel encoder velocity
-        self.velocityL = 0.0 # Left wheel encoder velocity
+        self.velocityR = None # Right wheel encoder velocity
+        self.velocityL = None # Left wheel encoder velocity
 
     def image_cb(self, data):
         img_original = self.bridge.imgmsg_to_cv2(data)

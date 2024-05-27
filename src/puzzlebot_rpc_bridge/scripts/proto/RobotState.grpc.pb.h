@@ -45,6 +45,13 @@ class RobotState final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::ImageReply>> PrepareAsyncGetImage(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::ImageReply>>(PrepareAsyncGetImageRaw(context, request, cq));
     }
+    virtual ::grpc::Status GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::robotonotos::VelocityReply* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>> AsyncGetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>>(AsyncGetVelocityRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>> PrepareAsyncGetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>>(PrepareAsyncGetVelocityRaw(context, request, cq));
+    }
     class experimental_async_interface {
      public:
       virtual ~experimental_async_interface() {}
@@ -61,6 +68,18 @@ class RobotState final {
       #else
       virtual void GetImage(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::ImageReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
       #endif
+      virtual void GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
     };
     #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
     typedef class experimental_async_interface async_interface;
@@ -72,6 +91,8 @@ class RobotState final {
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::ImageReply>* AsyncGetImageRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::ImageReply>* PrepareAsyncGetImageRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>* AsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::robotonotos::VelocityReply>* PrepareAsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -82,6 +103,13 @@ class RobotState final {
     }
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::ImageReply>> PrepareAsyncGetImage(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::ImageReply>>(PrepareAsyncGetImageRaw(context, request, cq));
+    }
+    ::grpc::Status GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::robotonotos::VelocityReply* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>> AsyncGetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>>(AsyncGetVelocityRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>> PrepareAsyncGetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>>(PrepareAsyncGetVelocityRaw(context, request, cq));
     }
     class experimental_async final :
       public StubInterface::experimental_async_interface {
@@ -98,6 +126,18 @@ class RobotState final {
       #else
       void GetImage(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::ImageReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
       #endif
+      void GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response, std::function<void(::grpc::Status)>) override;
+      void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void GetVelocity(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void GetVelocity(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::robotonotos::VelocityReply* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -111,7 +151,10 @@ class RobotState final {
     class experimental_async async_stub_{this};
     ::grpc::ClientAsyncResponseReader< ::robotonotos::ImageReply>* AsyncGetImageRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::robotonotos::ImageReply>* PrepareAsyncGetImageRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>* AsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::robotonotos::VelocityReply>* PrepareAsyncGetVelocityRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_GetImage_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetVelocity_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -121,6 +164,7 @@ class RobotState final {
     virtual ~Service();
     // Sends a greeting
     virtual ::grpc::Status GetImage(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::robotonotos::ImageReply* response);
+    virtual ::grpc::Status GetVelocity(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_GetImage : public BaseClass {
@@ -142,7 +186,27 @@ class RobotState final {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_GetImage<Service > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_GetVelocity : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetVelocity() {
+      ::grpc::Service::MarkMethodAsync(1);
+    }
+    ~WithAsyncMethod_GetVelocity() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetVelocity(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetVelocity(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::robotonotos::VelocityReply>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_GetImage<WithAsyncMethod_GetVelocity<Service > > AsyncService;
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_GetImage : public BaseClass {
    private:
@@ -190,11 +254,58 @@ class RobotState final {
     #endif
       { return nullptr; }
   };
+  template <class BaseClass>
+  class ExperimentalWithCallbackMethod_GetVelocity : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithCallbackMethod_GetVelocity() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::robotonotos::VelocityReply>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::google::protobuf::Empty* request, ::robotonotos::VelocityReply* response) { return this->GetVelocity(context, request, response); }));}
+    void SetMessageAllocatorFor_GetVelocity(
+        ::grpc::experimental::MessageAllocator< ::google::protobuf::Empty, ::robotonotos::VelocityReply>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(1);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::robotonotos::VelocityReply>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~ExperimentalWithCallbackMethod_GetVelocity() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetVelocity(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* GetVelocity(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* GetVelocity(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/)
+    #endif
+      { return nullptr; }
+  };
   #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
-  typedef ExperimentalWithCallbackMethod_GetImage<Service > CallbackService;
+  typedef ExperimentalWithCallbackMethod_GetImage<ExperimentalWithCallbackMethod_GetVelocity<Service > > CallbackService;
   #endif
 
-  typedef ExperimentalWithCallbackMethod_GetImage<Service > ExperimentalCallbackService;
+  typedef ExperimentalWithCallbackMethod_GetImage<ExperimentalWithCallbackMethod_GetVelocity<Service > > ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_GetImage : public BaseClass {
    private:
@@ -208,6 +319,23 @@ class RobotState final {
     }
     // disable synchronous version of this method
     ::grpc::Status GetImage(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::ImageReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetVelocity : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetVelocity() {
+      ::grpc::Service::MarkMethodGeneric(1);
+    }
+    ~WithGenericMethod_GetVelocity() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetVelocity(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -230,6 +358,26 @@ class RobotState final {
     }
     void RequestGetImage(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_GetVelocity : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetVelocity() {
+      ::grpc::Service::MarkMethodRaw(1);
+    }
+    ~WithRawMethod_GetVelocity() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetVelocity(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetVelocity(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -271,6 +419,44 @@ class RobotState final {
       { return nullptr; }
   };
   template <class BaseClass>
+  class ExperimentalWithRawCallbackMethod_GetVelocity : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithRawCallbackMethod_GetVelocity() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetVelocity(context, request, response); }));
+    }
+    ~ExperimentalWithRawCallbackMethod_GetVelocity() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetVelocity(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* GetVelocity(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* GetVelocity(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_GetImage : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -297,9 +483,36 @@ class RobotState final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedGetImage(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::robotonotos::ImageReply>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_GetImage<Service > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetVelocity : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetVelocity() {
+      ::grpc::Service::MarkMethodStreamed(1,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::google::protobuf::Empty, ::robotonotos::VelocityReply>(
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
+                     ::google::protobuf::Empty, ::robotonotos::VelocityReply>* streamer) {
+                       return this->StreamedGetVelocity(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetVelocity() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetVelocity(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::robotonotos::VelocityReply* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetVelocity(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::robotonotos::VelocityReply>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_GetImage<WithStreamedUnaryMethod_GetVelocity<Service > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_GetImage<Service > StreamedService;
+  typedef WithStreamedUnaryMethod_GetImage<WithStreamedUnaryMethod_GetVelocity<Service > > StreamedService;
 };
 
 }  // namespace robotonotos
