@@ -238,7 +238,7 @@
         </joint>
                   
         <!-- Puzzlebot differential drive plugin -->
-        <plugin name="DiffDynamicPlugin" filename="libDiffDynamicPlugin.so">
+        <!-- <plugin name="DiffDynamicPlugin" filename="libDiffDynamicPlugin.so">
             <leftJoint>left_wheel_joint</leftJoint>
             <rightJoint>right_wheel_joint</rightJoint>
             <cmd_R_topic>VelocitySetR</cmd_R_topic>
@@ -261,6 +261,16 @@
             <pid_Td>0</pid_Td>
             <input_type>2</input_type>
             <rate>100</rate>
+        </plugin> -->
+        <plugin
+            filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+            <left_joint>left_wheel_joint</left_joint>
+            <right_joint>right_wheel_joint</right_joint>
+            <wheel_separation>0.18</wheel_separation>
+            <wheel_radius>0.05</wheel_radius>
+            <odom_publish_frequency>1</odom_publish_frequency>
+            <topic>cmd_vel</topic>
         </plugin>
         
         <frame name="camera_frame" attached_to='chassis'>
