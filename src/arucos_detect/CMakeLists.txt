@@ -9,12 +9,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(open3d REQUIRED)
-find_package(numpy REQUIRED)
-find_package(cv2 REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(tf_transformations REQUIRED)
+# find_package(open3d REQUIRED)
+# find_package(numpy REQUIRED)
+# find_package(cv2 REQUIRED)
+# find_package(cv_bridge REQUIRED)
+# find_package(tf_transformations REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(arucos_interfaces REQUIRED)
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
@@ -22,6 +23,12 @@ ament_python_install_package(${PROJECT_NAME})
 #Install Python Executables
 install(PROGRAMS scripts/aruco_node.py DESTINATION lib/${PROJECT_NAME})
 install(PROGRAMS scripts/camera_info.py DESTINATION lib/${PROJECT_NAME})
+
+# Install directories
+install(DIRECTORY
+    launch yaml
+    DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

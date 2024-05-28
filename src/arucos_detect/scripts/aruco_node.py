@@ -1,10 +1,12 @@
+#!/usr/bin/python3
 #Ppmike aniade a un array los arucos que se estan detectando a diferencia del Airlab donde se incluye en un solo mensaje todo
 #Airlab hace uso de sus propias funciones de aruco pose estimation, ppmike usa opencv (se utilizar opencv)
 
 #Ros2 Imports
 import rclpy
-import rclpy.node import Node
+from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
+from rclpy.logging import get_logger
 from cv_bridge import CvBridge
 import message_filters
 
@@ -13,13 +15,15 @@ import numpy as np
 import cv2
 from cv_bridge import CvBridge
 import argparse
+import sys
 
 # ROS2 message imports
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.msg import Image, CameraInfo
-from geometry_msgs.msg import PoseArray
-from aruco_interfaces.msg import ArucoMarkers, ArucosDetected
+from geometry_msgs.msg import Pose, PoseArray
+from arucos_interfaces.msg import ArucoMarkers, ArucosDetected
 from rcl_interfaces.msg import ParameterDescriptor, ParameterType
+from std_msgs.msg import Header
 
 
 # Define command line arguments
@@ -60,20 +64,23 @@ ARUCO_DICT = {
     "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
 }
 
+
+logger = get_logger('aruco_detector')
+
 if args["type"] not in ARUCO_DICT:
-    rospy.logerr("ArUCo tag type '{}' is not supported".format(args["type"]))
+    logger.get_logger().error(f"ArUCo tag type '{args['type']}' is not supported")
     sys.exit(0)
 
-aruco_dict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
-aruco_params = cv2.aruco.DetectorParameters_create()
+#aruco_dict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]]) #modificar
+aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT[args["type"]])
+aruco_params = cv2.aruco.DetectorParameters()
 
 
 class ArucoNode(Node):
     
     def __init__(self):
         super().__init__('aruco_node')
-        timer_period = 0.05 #seconds
-        self.timer =  self.create_timer(timer_period, self.process_aruco)
+        #timer_period = 0.05 #seconds
         self.bridge = CvBridge()
         self.camera_matrix = None
         self.distortion_coefficients = None
@@ -84,7 +91,10 @@ class ArucoNode(Node):
 
         #Setup Subscriber
         self.image = self.create_subscription(Image, args["video_source"], self.imageproc_cb,10)
-        self.caminfo_sub = self.create_subscription(CameraInfo, args["camera_info", self.caminfo_cb,10])
+        self.caminfo_sub = self.create_subscription(CameraInfo, args["camera_info"], self.caminfo_cb,10)
+
+        #self.timer =  self.create_timer(timer_period, self.process_aruco)
+
 
     #Camera Info Callback
     def caminfo_cb(self, data):
@@ -98,18 +108,43 @@ class ArucoNode(Node):
         self.corners, self.ids, self.rejected = cv2.aruco.detectMarkers(grayscale, aruco_dict, parameters=aruco_params)
         if self.ids is not None:
             self.process_aruco()
+        else:
+            print("NO ARUCO detected")
     
-    #Process Detected Aruco Markers
+    # #Process Detected Aruco Markers
+    # def process_aruco(self):
+    #     detected_arucos = []
+    #     rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(self.corners, self.marker_size, self.camera_matrix, self.distortion_coefficients)
+    #     for i, corner in enumerate(self.corners):
+    #         center = corner.reshape((4,2)).mean(axis=0)
+    #         pose = [tvecs[i][0][0],tvecs[i][0][1],tvecs[i][0][2]] #position in 3D space
+    #         detected_arucos.append(ArucosDetected(id=int(self.ids[i][0]), pose=pose))
+    #     self.aruco_publisher_.publish(ArucosDetected(arucos_detected=detected_arucos))
+    #     self.get_logger().info('Publishing ArucosDetected')
+    
+        #Process Detected Aruco Markers
     def process_aruco(self):
-        detected_arucos = []
-        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(self.corners, self.marker_size, self.camera_matrix, self.distortion_coefficients)
-        for i, corner in enumerate(self.corners):
-            center = corner.reshape((4,2)).mean(axis=0)
-            pose = [tvecs[i][0][0],tvecs[i][0][1],tvecs[i][0][2]] #position in 3D space
-            detected_arucos.append(ArucosDetected(id=int(self.ids[i][0]), pose=pose))
-        self.aruco_publisher_.publish(ArucosDetected(arucos_detected=detected_arucos))
-        self.get_logger().info('Publishing ArucosDetected')
+        detected_arucos = ArucosDetected()
+        detected_arucos.header = Header()
+        detected_arucos.header.stamp = self.get_clock().now().to_msg()
+        detected_arucos.header.frame_id = "camera"
 
+        for i, corner in enumerate(self.corners):
+            marker = ArucoMarkers()
+            marker.header = detected_arucos.header
+            marker.marker_ids = int(self.ids[i][0])
+            pose = Pose()
+            rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(self.corners, self.marker_size, self.camera_matrix, self.distortion_coefficients)
+            pose.position.x = tvecs[0][0][0]
+            pose.position.y = tvecs[0][0][1]
+            pose.position.z = tvecs[0][0][2]
+            # orientation calculation?
+            marker.poses.append(pose)
+            detected_arucos.arucos_detected.append(marker)
+
+        print(marker.marker_ids)
+        self.aruco_publisher_.publish(detected_arucos)
+        self.get_logger().info('Publishing ArucosDetected')
 
 def main(args=None):
     rclpy.init(args=args)

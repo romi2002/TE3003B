@@ -12,19 +12,20 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution, TextSubstitution
 
+
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            package = 'arucos_detect'
-            executable = 'aruco_node.py'
+            package = 'arucos_detect',
+            executable = 'aruco_node.py',
             name = 'aruco_node'
         ),
         Node(
-            package = 'arucos_detect'
-            executable = 'camera_info.py'
+            package = 'arucos_detect',
+            executable = 'camera_info.py',
             name = 'camera_info_node'
         ),
-        IncludeLaunchDescription(  ##change
+        IncludeLaunchDescription(  
             XMLLaunchDescriptionSource([
                 PathJoinSubstitution([
                     FindPackageShare("foxglove_bridge"),

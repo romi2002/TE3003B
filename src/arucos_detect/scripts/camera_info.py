@@ -1,6 +1,7 @@
+#!/usr/bin/python3
 #Ros2 Imports
 import rclpy
-import rclpy.node import Node
+from rclpy.node import Node
 
 # Python imports
 import numpy as np
@@ -13,7 +14,7 @@ from sensor_msgs.msg import CameraInfo
 
 
 #Calibration YAML extract CameraInfo
-yaml_path = os.path.expanduser("TE3003B/src/arucos_detect/yaml/ost.yaml")
+yaml_path = os.path.join("/home/puzzlebot/TE3003B/src/arucos_detect/yaml", "ost.yaml")
 
 def extract_camera_info(yaml_file):
     """Load camera info from a YAML file."""
@@ -24,10 +25,10 @@ def extract_camera_info(yaml_file):
     camera_info_msg.width = calib_data["image_width"]
     camera_info_msg.height = calib_data["image_height"]
     camera_info_msg.distortion_model = calib_data["distortion_model"]
-    camera_info_msg.D = calib_data["distortion_coefficients"]["data"]
-    camera_info_msg.K = calib_data["camera_matrix"]["data"]
-    camera_info_msg.R = calib_data["rectification_matrix"]["data"]
-    camera_info_msg.P = calib_data["projection_matrix"]["data"]
+    camera_info_msg.d = calib_data["distortion_coefficients"]["data"]
+    camera_info_msg.k = calib_data["camera_matrix"]["data"]
+    camera_info_msg.r = calib_data["rectification_matrix"]["data"]
+    camera_info_msg.p = calib_data["projection_matrix"]["data"]
 
     return camera_info_msg
 
@@ -42,14 +43,14 @@ class CalibrationPublisher(Node):
 
     def timer_callback(self):
         msg = CameraInfo()
-        msg.data = extract_camera_info(yaml_path)
+        msg.d = extract_camera_info(yaml_path).d
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing CameraInfo')
 
 def main(args=None):
     rclpy.init(args=args)
     calibration_publisher = CalibrationPublisher()
-    rclpy.spin()
+    rclpy.spin(calibration_publisher)
     calibration_publisher.destroy_node()
     rclpy.shutdown()
 
