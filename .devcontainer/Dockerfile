@@ -4,7 +4,7 @@ RUN apt-get update && \
 	rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && \
-    apt-get install -y cmake build-essential libprotobuf-dev autoconf libtool pkg-config golang-go protobuf-compiler libabsl-dev && \
+    apt-get install -y cmake build-essential libprotobuf-dev autoconf libtool pkg-config golang-go protobuf-compiler protobuf-c-compiler libabsl-dev && \
     git clone --recurse-submodules -b v1.30.2 --depth 1 --shallow-submodules https://github.com/grpc/grpc && \
     cd grpc && mkdir -p cmake/build && cd cmake/build && \
     cmake -DgRPC_INSTALL=ON \
@@ -12,14 +12,18 @@ RUN apt-get update && \
     -DCMAKE_BUILD_TYPE=Release       \
     -DgRPC_ABSL_PROVIDER=package     \
     -DgRPC_PROTOBUF_PROVIDER=package \
+    -DProtobuf_PROTOC_EXECUTABLE=/usr/bin/protoc \
       ../.. && \
-    make -j12 && \
+    make -j$(nproc) && \
     make install && \
     rm -rf /var/lib/apt/lists
 
 RUN apt-get update && \
-    apt-get install -y ros-humble-tf2-geometry-msgs && \
+    apt-get install -y ros-humble-tf2-geometry-msgs libjpeg-turbo8-dev libboost-all-dev && \
     rm -rf /var/lib/apt/lists/*
+
+RUN apt-get purge golang*
+COPY --from=golang:bookworm /usr/local/go/ /usr/local/go/
 
 COPY library-scripts/desktop-lite-debian.sh /tmp/library-scripts/
 RUN apt-get update && bash /tmp/library-scripts/desktop-lite-debian.sh
