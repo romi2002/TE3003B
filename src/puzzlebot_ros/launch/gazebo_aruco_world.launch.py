@@ -21,11 +21,17 @@ def generate_launch_description():
         get_package_share_directory("puzzlebot_ros"),
         "gazebo",
     )
+    plugin_path = os.path.join(
+        get_package_share_directory("puzzlebot_ros"),
+        "gazebo",
+        "plugins"
+    )
     gazebo_sim = ExecuteProcess(
         cmd=['ign', 'gazebo', world_path],
         name='gazebo_sim', 
         output='screen',
-        additional_env={'IGN_GAZEBO_RESOURCE_PATH': resource_path})
+        additional_env={'IGN_GAZEBO_RESOURCE_PATH': resource_path,
+                        'IGN_GAZEBO_SYSTEM_PLUGIN_PATH': plugin_path})
     
     # Bridge
     bridge = Node(
