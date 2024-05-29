@@ -80,11 +80,6 @@
         </model>
 
         <!-- <include>
-        <uri>/world_wall/model.sdf</uri>
-        <pose>0 0 0 0 0 0</pose>
-        </include> -->
-
-        <!-- <include>
             <uri>model://box_brick</uri>
             <name>brick1</name>
             <pose>3.15 1 0 0 0 0</pose>
