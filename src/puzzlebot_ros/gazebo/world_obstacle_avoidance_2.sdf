@@ -35,7 +35,7 @@
         <!-- A puzzlebot robot -->
         <include>
             <uri>/puzzlebot_complete/model.sdf</uri>
-            <pose>0 0 0 0 0 1.57</pose>
+            <pose>2.1 2 0 0 0 1.57</pose>
         </include>
         
         <!-- <include>
@@ -54,10 +54,35 @@
         <pose>0 0 0 0 0 0</pose>
         </include>
 
-        <include>
+        <model name="ground_plane">
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                <geometry>
+                    <box>
+                    <size>20 20 0.1</size>
+                    </box>
+                </geometry>
+                </collision>
+                <visual name="visual">
+                <geometry>
+                    <box>
+                    <size>20 20 0.1</size>
+                    </box>
+                </geometry>
+                <material>
+                    <ambient>0.8 0.8 0.8 1</ambient>
+                    <diffuse>0.8 0.8 0.8 1</diffuse>
+                    <specular>0.8 0.8 0.8 1</specular>
+                </material>
+                </visual>
+            </link>
+        </model>
+
+        <!-- <include>
         <uri>/world_wall/model.sdf</uri>
         <pose>0 0 0 0 0 0</pose>
-        </include>
+        </include> -->
 
         <!-- <include>
             <uri>model://box_brick</uri>
