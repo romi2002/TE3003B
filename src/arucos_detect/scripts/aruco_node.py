@@ -23,7 +23,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Pose, PoseArray
 from arucos_interfaces.msg import ArucoMarkers, ArucosDetected
 from rcl_interfaces.msg import ParameterDescriptor, ParameterType
-from std_msgs.msg import Header
+from std_msgs.msg import Header, Float64
 
 
 # Define command line arguments
@@ -184,6 +184,9 @@ class ArucoNode(Node):
             marker.pose.position.x = tvec[0][0]
             marker.pose.position.y = tvec[1][0]
             marker.pose.position.z = tvec[2][0]
+            
+            marker.range.data = np.hypot(tvec[0][0], tvec[1][0])
+            marker.bearing.data = np.arctan2(tvec[1][0], tvec[0][0])
             detected_arucos.detections.append(marker)
 
         self.aruco_publisher_.publish(detected_arucos)
