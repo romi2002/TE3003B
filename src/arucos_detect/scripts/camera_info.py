@@ -11,11 +11,12 @@ import os
 
 # ROS2 message imports
 from sensor_msgs.msg import CameraInfo
+from ament_index_python.packages import get_package_share_directory
+
 
 
 # Calibration YAML extract CameraInfo
-yaml_path = os.path.join("/home/puzzlebot/TE3003B/src/arucos_detect/yaml", "ost.yaml")
-
+yaml_path = os.path.join(get_package_share_directory('arucos_detect'), "yaml", "ost.yaml")
 
 def extract_camera_info(yaml_file):
     """Load camera info from a YAML file."""
@@ -43,8 +44,7 @@ class CalibrationPublisher(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
-        msg = CameraInfo()
-        msg.d = extract_camera_info(yaml_path).d
+        msg = extract_camera_info(yaml_path)
         self.publisher_.publish(msg)
         self.get_logger().info("Publishing CameraInfo")
 

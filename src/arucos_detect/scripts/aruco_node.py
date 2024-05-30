@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-#Ppmike aniade a un array los arucos que se estan detectando a diferencia del Airlab donde se incluye en un solo mensaje todo
-#Airlab hace uso de sus propias funciones de aruco pose estimation, ppmike usa opencv (se utilizar opencv)
+# Ppmike aniade a un array los arucos que se estan detectando a diferencia del Airlab donde se incluye en un solo mensaje todo
+# Airlab hace uso de sus propias funciones de aruco pose estimation, ppmike usa opencv (se utilizar opencv)
 
-#Ros2 Imports
+# Ros2 Imports
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
@@ -28,12 +28,27 @@ from std_msgs.msg import Header
 
 # Define command line arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-vs", "--video_source", type=str, default="/video_source/raw",
-                help="Video source ROS topic")
-ap.add_argument("-ci", "--camera_info", type=str, default="/camera_info",
-                help="Camera info ROS topic")
-ap.add_argument("-t", "--type", type=str, default="DICT_ARUCO_ORIGINAL",
-                help="Type of ArUCo tag to detect")
+ap.add_argument(
+    "-vs",
+    "--video_source",
+    type=str,
+    default="/video_source/raw",
+    help="Video source ROS topic",
+)
+ap.add_argument(
+    "-ci",
+    "--camera_info",
+    type=str,
+    default="/camera_info",
+    help="Camera info ROS topic",
+)
+ap.add_argument(
+    "-t",
+    "--type",
+    type=str,
+    default="DICT_5X5_50",
+    help="Type of ArUCo tag to detect",
+)
 
 # Use parse_known_args to ignore unknown args
 args, unknown = ap.parse_known_args()
@@ -61,55 +76,60 @@ ARUCO_DICT = {
     "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
     "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
     "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
-    "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
+    "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11,
 }
 
 
-logger = get_logger('aruco_detector')
+logger = get_logger("aruco_detector")
 
 if args["type"] not in ARUCO_DICT:
     logger.get_logger().error(f"ArUCo tag type '{args['type']}' is not supported")
     sys.exit(0)
 
-#aruco_dict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]]) #modificar
+# aruco_dict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]]) #modificar
 aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT[args["type"]])
-<<<<<<< HEAD
 aruco_params = cv2.aruco.DetectorParameters_create()
-=======
-aruco_params = cv2.aruco.DetectorParameters()
->>>>>>> origin/grpc
 
 
 class ArucoNode(Node):
 
     def __init__(self):
-        super().__init__('aruco_node')
-        #timer_period = 0.05 #seconds
+        super().__init__("aruco_node")
+
+        # timer_period = 0.05 #seconds
         self.bridge = CvBridge()
         self.camera_matrix = None
         self.distortion_coefficients = None
-        self.marker_size = 0.1 #Marker Size in Meters
+        self.marker_size = 0.1  # Marker Size in Meters
 
-        #Setup Publisher
-        self.aruco_publisher_ = self.create_publisher(ArucosDetected, 'arucos_detected', 10)
+        # Setup Publisher
+        self.aruco_publisher_ = self.create_publisher(
+            ArucosDetected, "arucos_detected", 10
+        )
 
-        #Setup Subscriber
-        self.image = self.create_subscription(Image, args["video_source"], self.imageproc_cb,10)
-        self.caminfo_sub = self.create_subscription(CameraInfo, args["camera_info"], self.caminfo_cb,10)
+        # Setup Subscriber
+        self.image = self.create_subscription(
+            Image, args["video_source"], self.imageproc_cb, 10
+        )
+        self.caminfo_sub = self.create_subscription(
+            CameraInfo, args["camera_info"], self.caminfo_cb, 10
+        )
 
-        #self.timer =  self.create_timer(timer_period, self.process_aruco)
+        # self.timer =  self.create_timer(timer_period, self.process_aruco)
 
-
-    #Camera Info Callback
+    # Camera Info Callback
     def caminfo_cb(self, data):
         self.camera_matrix = np.array(data.k).reshape(3, 3)
         self.distortion_coefficients = np.array(data.d)
 
-    #Image Processing Callback
+    # Image Processing Callback
     def imageproc_cb(self, data):
         opencv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         grayscale = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2GRAY)
-        self.corners, self.ids, self.rejected = cv2.aruco.detectMarkers(grayscale, aruco_dict, parameters=aruco_params)
+        self.corners, self.ids, self.rejected = cv2.aruco.detectMarkers(
+            grayscale, aruco_dict, parameters=aruco_params
+        )
+        print(self.ids)
         if self.ids is not None:
             self.process_aruco()
         else:
@@ -126,29 +146,49 @@ class ArucoNode(Node):
     #     self.aruco_publisher_.publish(ArucosDetected(arucos_detected=detected_arucos))
     #     self.get_logger().info('Publishing ArucosDetected')
 
-        #Process Detected Aruco Markers
+    # Process Detected Aruco Markers
     def process_aruco(self):
+        if self.camera_matrix is None or self.distortion_coefficients is None:
+            self.get_logger().error("No camera matrix")
+            return
+        
         detected_arucos = ArucosDetected()
         detected_arucos.header = Header()
         detected_arucos.header.stamp = self.get_clock().now().to_msg()
         detected_arucos.header.frame_id = "camera"
 
+        marker_points = np.array(
+            [
+                [-self.marker_size / 2, self.marker_size / 2, 0],
+                [self.marker_size / 2, self.marker_size / 2, 0],
+                [self.marker_size / 2, -self.marker_size / 2, 0],
+                [-self.marker_size / 2, -self.marker_size / 2, 0],
+            ],
+            dtype=np.float32,
+        )
+
         for i, corner in enumerate(self.corners):
             marker = ArucoMarkers()
             marker.header = detected_arucos.header
-            marker.marker_ids = int(self.ids[i][0])
-            pose = Pose()
-            rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(self.corners, self.marker_size, self.camera_matrix, self.distortion_coefficients)
-            pose.position.x = tvecs[0][0][0]
-            pose.position.y = tvecs[0][0][1]
-            pose.position.z = tvecs[0][0][2]
-            # orientation calculation?
-            marker.poses.append(pose)
-            detected_arucos.arucos_detected.append(marker)
+            marker.marker_id = int(self.ids[i][0])
 
-        print(marker.marker_ids)
+            _, rvec, tvec = cv2.solvePnP(
+                marker_points,
+                corner,
+                self.camera_matrix,
+                self.distortion_coefficients,
+                False,
+                cv2.SOLVEPNP_IPPE_SQUARE,
+            )
+            print(f"rvec {rvec} tvec {tvec} {tvec.shape}")
+            marker.pose.position.x = tvec[0][0]
+            marker.pose.position.y = tvec[1][0]
+            marker.pose.position.z = tvec[2][0]
+            detected_arucos.detections.append(marker)
+
         self.aruco_publisher_.publish(detected_arucos)
-        self.get_logger().info('Publishing ArucosDetected')
+        self.get_logger().info("Publishing ArucosDetected")
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -157,5 +197,6 @@ def main(args=None):
     aruco_node.destroy_node()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
