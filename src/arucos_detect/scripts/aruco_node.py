@@ -28,7 +28,7 @@ from std_msgs.msg import Header
 
 # Define command line arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-vs", "--video_source", type=str, default="/camera",
+ap.add_argument("-vs", "--video_source", type=str, default="/video_source/raw",
                 help="Video source ROS topic")
 ap.add_argument("-ci", "--camera_info", type=str, default="/camera_info",
                 help="Camera info ROS topic")
@@ -73,11 +73,15 @@ if args["type"] not in ARUCO_DICT:
 
 #aruco_dict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]]) #modificar
 aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT[args["type"]])
+<<<<<<< HEAD
 aruco_params = cv2.aruco.DetectorParameters_create()
+=======
+aruco_params = cv2.aruco.DetectorParameters()
+>>>>>>> origin/grpc
 
 
 class ArucoNode(Node):
-    
+
     def __init__(self):
         super().__init__('aruco_node')
         #timer_period = 0.05 #seconds
@@ -110,7 +114,7 @@ class ArucoNode(Node):
             self.process_aruco()
         else:
             print("NO ARUCO detected")
-    
+
     # #Process Detected Aruco Markers
     # def process_aruco(self):
     #     detected_arucos = []
@@ -121,7 +125,7 @@ class ArucoNode(Node):
     #         detected_arucos.append(ArucosDetected(id=int(self.ids[i][0]), pose=pose))
     #     self.aruco_publisher_.publish(ArucosDetected(arucos_detected=detected_arucos))
     #     self.get_logger().info('Publishing ArucosDetected')
-    
+
         #Process Detected Aruco Markers
     def process_aruco(self):
         detected_arucos = ArucosDetected()
