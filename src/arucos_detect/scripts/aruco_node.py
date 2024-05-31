@@ -12,6 +12,7 @@ import message_filters
 
 # Python imports
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 import cv2
 from cv_bridge import CvBridge
 import argparse
@@ -46,7 +47,7 @@ ap.add_argument(
     "-t",
     "--type",
     type=str,
-    default="DICT_5X5_50",
+    default="DICT_5X5_100",
     help="Type of ArUCo tag to detect",
 )
 
@@ -88,7 +89,7 @@ if args["type"] not in ARUCO_DICT:
 
 # aruco_dict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]]) #modificar
 aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT[args["type"]])
-aruco_params = cv2.aruco.DetectorParameters_create()
+aruco_params = cv2.aruco.DetectorParameters()
 
 
 class ArucoNode(Node):
@@ -101,6 +102,21 @@ class ArucoNode(Node):
         self.camera_matrix = None
         self.distortion_coefficients = None
         self.marker_size = 0.1  # Marker Size in Meters
+        
+        # TODO Move this to a parameter
+        # In degrees
+        self.camera_rpy = np.array((-90, 0, -90))
+        r = R.from_euler('xyz', self.camera_rpy, degrees=True)
+        self.camera_xyz = np.array((0, 0, 0))
+
+        self.camera_transform_matrix = np.zeros((4, 4))
+        # First 3x3 is rotation matrix
+        self.camera_transform_matrix[0:3, 0:3] = r.as_matrix()
+        self.camera_transform_matrix[0, 3] = self.camera_xyz[0]
+        self.camera_transform_matrix[1, 3] = self.camera_xyz[1]
+        self.camera_transform_matrix[2, 3] = self.camera_xyz[2]
+        self.camera_transform_matrix[3, 3] = 1
+        self.get_logger().info(f"Camera Transform Matrix:\n{self.camera_transform_matrix}")
 
         # Setup Publisher
         self.aruco_publisher_ = self.create_publisher(
@@ -180,13 +196,28 @@ class ArucoNode(Node):
                 False,
                 cv2.SOLVEPNP_IPPE_SQUARE,
             )
-            print(f"rvec {rvec} tvec {tvec} {tvec.shape}")
-            marker.pose.position.x = tvec[0][0]
-            marker.pose.position.y = tvec[1][0]
-            marker.pose.position.z = tvec[2][0]
+            #print(f"rvec {rvec} tvec {tvec} {tvec.shape}")
+            rot, _ = cv2.Rodrigues(rvec)
+            marker_matrix = np.zeros((4, 4))
+            # First 3x3 is rotation matrix
+            marker_matrix[0:3, 0:3] = rot
+            marker_matrix[0, 3] = tvec[0][0]
+            marker_matrix[1, 3] = tvec[1][0]
+            marker_matrix[2, 3] = tvec[2][0]
+            marker_matrix[3, 3] = 1
             
-            marker.range.data = np.hypot(tvec[0][0], tvec[1][0])
-            marker.bearing.data = np.arctan2(tvec[1][0], tvec[0][0])
+            transformed_marker = self.camera_transform_matrix @ marker_matrix
+            print(f"{self.camera_transform_matrix}")
+
+            x = transformed_marker[0, 3]
+            y = transformed_marker[1, 3]
+            z = transformed_marker[2, 3]
+            marker.pose.position.x = x
+            marker.pose.position.y = y
+            marker.pose.position.z = z
+            
+            marker.range.data = np.hypot(x, y)
+            marker.bearing.data = np.arctan2(y, x)
             detected_arucos.detections.append(marker)
 
         self.aruco_publisher_.publish(detected_arucos)

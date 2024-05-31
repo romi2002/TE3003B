@@ -53,5 +53,23 @@ def generate_launch_description():
                     'foxglove_bridge_launch.xml'
                     ])
             ])
-        )
+        ),
+        IncludeLaunchDescription(
+            XMLLaunchDescriptionSource([
+                PathJoinSubstitution([
+                    FindPackageShare("ros_deep_learning"),
+                    'launch',
+                    'video_source.ros2.launch'
+                    ])
+            ]),
+            launch_arguments={
+                'width': '1280',
+                'height': '720',
+                'flip': 'none'
+            }.items()
+        ),
+        Node(
+            package = "arucos_detect",
+            executable = "camera_info.py",
+        ),
     ])
