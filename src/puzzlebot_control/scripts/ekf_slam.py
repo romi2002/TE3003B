@@ -73,6 +73,15 @@ class EKF_SLAM_Correspondence:
         self.sigma[1][1] += self.R[1][1]
         self.sigma[2][2] += self.R[2][2]
         self.last_time = time
+        
+    @staticmethod
+    def wrap_angle(angle):
+        angle = math.copysign(math.fmod(angle, 2 * math.pi), angle)
+        if angle > math.pi:
+            angle -= 2 * math.pi
+        elif angle < -math.pi:
+            angle += 2 * math.pi
+        return angle
 
     def measurement_update(self, z: TagDetection):
         if z.idx not in self.valid_tags:
@@ -130,7 +139,7 @@ class EKF_SLAM_Correspondence:
 
         # Prediction
         self.state = self.state + self.K @ np.array(
-            [z.range - expected_range, z.bearing - expected_bearing, 0]
+            [z.range - expected_range, self.wrap_angle(z.bearing - expected_bearing), 0]
         )
 
         # Cov update
