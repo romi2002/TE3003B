@@ -121,11 +121,11 @@ class ArucoNode(Node):
         self.cube_marker_size = 0.05
 
         # Setup Publisher
-        self.detections_publisher_ = self.create_publisher(
-            ArucosDetected, "/arucos_detected", 10
-        )
+        # self.aruco_publisher_ = self.create_publisher(
+        #     ArucosDetected, "arucos_detected", 10
+        # )
         self.aruco_marker_publisher_ = self.create_publisher(
-            ArucoMarkers, "/aruco_marker", 10
+            ArucoMarkers, "aruco_marker", 10
         )
 
         # Setup Subscriber
@@ -197,14 +197,11 @@ class ArucoNode(Node):
                 cv2.SOLVEPNP_IPPE_SQUARE,
                 )
 
-
             # Calcular centroide del aruco
-            # center = np.mean(corner[0], axis=0)
-            center = corner.reshape((4,2)).mean(axis=0)
-            center = center.astype(float)
             centroid = Point()
-            centroid.x = center[0]
-            centroid.y = center[1]
+            moments = cv2.moments(corner[0])            
+            centroid.x = float(moments['m10'] / moments['m00'])
+            centroid.y = float(moments['m01'] / moments['m00'])
             centroid.z = 0.0 # Imagen es en 2D
             marker.centroid = centroid
 
@@ -230,8 +227,8 @@ class ArucoNode(Node):
             # self.get_logger().info("Publishing ArucoMarkers")
             # cv2.aruco.drawAxis(grayscale, self.mtx, self.dst, rvec[i], tvec[i], 0.05)  # checar rvec[i]?
 
-        self.detections_publisher_.publish(detected_arucos)
-        # self.get_logger().info("Publishing ArucosDetected")
+        #self.aruco_publisher_.publish(detected_arucos)
+        self.get_logger().info("Publishing ArucosDetected")
 
 
 def main(args=None):
