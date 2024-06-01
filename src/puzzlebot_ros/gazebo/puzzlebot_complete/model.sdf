@@ -58,7 +58,7 @@
             <sensor name='gpu_lidar' type='gpu_lidar'>"
                 <pose relative_to='lidar_frame'>0 0 0 0 0 0</pose>
                 <topic>lidar</topic>
-                <update_rate>10</update_rate>
+                <update_rate>100</update_rate>
                 <ray>
                     <scan>
                         <horizontal>
@@ -297,7 +297,7 @@
             <right_joint>right_wheel_joint</right_joint>
             <wheel_separation>0.18</wheel_separation>
             <wheel_radius>0.05</wheel_radius>
-            <odom_publish_frequency>1</odom_publish_frequency>
+            <odom_publish_frequency>100</odom_publish_frequency>
             <topic>cmd_vel</topic>
         </plugin>
         
