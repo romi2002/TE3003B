@@ -72,4 +72,8 @@ def generate_launch_description():
             package = "arucos_detect",
             executable = "camera_info.py",
         ),
+        Node(
+            package = "arucos_detect",
+            executable = "aruco_node.py"
+        ),
     ])
