@@ -42,6 +42,7 @@ install(PROGRAMS
   scripts/cmd_vel_node.py
   src/odometry_node.py
   scripts/set_point.py
+  scripts/bug0_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
