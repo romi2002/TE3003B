@@ -25,7 +25,7 @@ add_executable(odometry_node src/odometry_node.cpp)
 ament_target_dependencies(controller_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs)
 ament_target_dependencies(kinematic_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs std_msgs)
 ament_target_dependencies(joint_state_node rclcpp geometry_msgs sensor_msgs tf2_geometry_msgs std_msgs)
-ament_target_dependencies(potential_field_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs)
+ament_target_dependencies(potential_field_node rclcpp geometry_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs sensor_msgs)
 ament_target_dependencies(odometry_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs nav_msgs)
 
 INSTALL(TARGETS
