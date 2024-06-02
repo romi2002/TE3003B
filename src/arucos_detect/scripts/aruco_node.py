@@ -221,7 +221,6 @@ class ArucoNode(Node):
             detected_arucos.detections.append(marker)
 
         self.aruco_publisher_.publish(detected_arucos)
-        self.get_logger().info("Publishing ArucosDetected")
 
 
 def main(args=None):

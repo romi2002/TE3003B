@@ -40,13 +40,13 @@ class CalibrationPublisher(Node):
     def __init__(self):
         super().__init__("calibration_publisher")
         self.publisher_ = self.create_publisher(CameraInfo, "camera_info", 10)
-        timer_period = 0.5
+        timer_period = 5
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
         msg = extract_camera_info(yaml_path)
         self.publisher_.publish(msg)
-        self.get_logger().info("Publishing CameraInfo")
+        #self.get_logger().info("Publishing CameraInfo")
 
 
 def main(args=None):

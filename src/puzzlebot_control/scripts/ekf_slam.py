@@ -109,7 +109,7 @@ class EKF_SLAM_Correspondence:
         q = dx**2 + dy**2
         expected_range = np.hypot(dx, dy)
         expected_bearing = np.arctan2(dy, dx) - theta
-        print(f"Expected Range: {expected_range} Range: {z.range} Expected Bearing: {expected_bearing} Bearing: {z.bearing}")
+        #print(f"Expected Range: {expected_range} Range: {z.range} Expected Bearing: {expected_bearing} Bearing: {z.bearing}")
 
         # Linearize model
         F = np.zeros((5, 3 + self.N2))
@@ -162,8 +162,8 @@ class EKFSlamNode(Node):
             Float32, 'VelocityEncR', self.right_cb, qos)
         self.wl, self.wr = None, None
 
-        R = np.diagflat(np.array([5.0, 5.0, 10.0])) ** 2 / 8
-        Q = np.diagflat(np.array([110.0, 110.0, 1e16])) ** 2 / 10
+        R = np.diagflat(np.array([2.50, 2.50, 5.0])) ** 2 / 8
+        Q = np.diagflat(np.array([110.0, 110.0, 1e16])) ** 2 / 8
         self.slam = EKF_SLAM_Correspondence(R, Q, range(12))
 
         self.r = 0.05 # Radius of each wheel
@@ -171,7 +171,7 @@ class EKFSlamNode(Node):
 
         self.br = TransformBroadcaster(self)
         self.odom_timer = self.create_timer(0.01, self.odom_update)
-        self.timer = self.create_timer(0.1, self.timer_update)
+        self.timer = self.create_timer(0.01, self.timer_update)
 
     def left_cb(self, msg):
         self.wl = msg.data

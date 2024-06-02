@@ -22,7 +22,7 @@ class PotentialFieldNode(Node):
         self.goal_gain = 1
         self.obstacle_gain = 0.1
         self.k_u = 0.25
-        self.k_r = 1.5
+        self.k_r = 0.5
 
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
@@ -64,6 +64,11 @@ class PotentialFieldNode(Node):
             self.obs_y = fy / valid_ranges
         else:
             self.obs_x, self.obs_y = 0, 0
+            
+    def __del__(self):
+        self.get_logger().info("Stopping robot")
+        zero_vel = Twist()
+        self.cmd_vel_pub.publish(zero_vel)
 
     def timer_cb(self):
         if self.target_x is None or self.target_y is None:
@@ -71,8 +76,8 @@ class PotentialFieldNode(Node):
             return
         try:
             t = self.tf_buffer.lookup_transform(
-                "odom",
                 "map",
+                "odom",
                 rclpy.time.Time()
             )
         except TransformException as ex:
@@ -81,24 +86,41 @@ class PotentialFieldNode(Node):
             )
             return
 
-        roll, pitch, yaw = euler_from_quaternion(t.transform.rotation)
+        q = t.transform.rotation
+        roll, pitch, yaw = euler_from_quaternion((q.x, q.y, q.z, q.w))
 
         error_x = self.target_x - t.transform.translation.x
         error_y = self.target_y - t.transform.translation.y
 
-        goal_x = error_x * np.cos(yaw) - error_y * np.sin(yaw)
-        goal_y = error_x * np.sin(yaw) + error_y * np.cos(yaw)
+        goal_x = (error_x * np.cos(yaw) - error_y * np.sin(yaw))
+        goal_y = (error_x * np.sin(yaw) + error_y * np.cos(yaw))
 
+        self.obs_x, self.obs_y = 0, 0
         fx = goal_x * self.goal_gain + self.obs_x * self.obstacle_gain
         fy = goal_y * self.goal_gain + self.obs_y * self.obstacle_gain
 
         mag = np.hypot(fx, fy)
-        angle = np.arctan2(fy, fx)
+        angle = np.arctan2(fy, fx) - yaw
 
         u = mag * np.cos(angle) * self.k_u
-        r = -angle * self.k_r
+        r = angle * self.k_r
+        
+        if np.hypot(error_x, error_y) < 0.1:
+            u = 0.0
+            r = 0.0
 
         cmd_vel = Twist()
         cmd_vel.linear.x = u
         cmd_vel.angular.z = r
+        self.get_logger().info(f"tx: {t.transform.translation.x} ty: {t.transform.translation.y} gx: {goal_x}, gy: {goal_y} u: {u} r: {r}")
         self.cmd_vel_pub.publish(cmd_vel)
+        
+def main(args=None):
+    rclpy.init(args=args)
+    pf_node = PotentialFieldNode()
+    rclpy.spin(pf_node)
+    pf_node.destroy_node()
+    rclpy.shutdown()
+    
+if __name__ == "__main__":
+    main()

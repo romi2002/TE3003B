@@ -43,6 +43,7 @@ install(PROGRAMS
   src/odometry_node.py
   scripts/set_point.py
   scripts/ekf_slam.py
+  scripts/potential_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
