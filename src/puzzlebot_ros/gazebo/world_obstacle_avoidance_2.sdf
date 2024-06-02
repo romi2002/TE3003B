@@ -35,7 +35,7 @@
         <!-- A puzzlebot robot -->
         <include>
             <uri>/puzzlebot_complete/model.sdf</uri>
-            <pose>2.1 2 0 0 0 1.57</pose>
+            <pose>3 2 0 0 0 -3.14</pose>
         </include>
         
         <!-- <include>
@@ -49,10 +49,10 @@
         <pose>0 0 0 0 0 0</pose>
         </include> -->
 
-        <include>
+        <!-- <include>
         <uri>/avoidance_world_2/model.sdf</uri>
         <pose>0 0 0 0 0 0</pose>
-        </include>
+        </include> -->
 
         <model name="ground_plane">
             <static>true</static>

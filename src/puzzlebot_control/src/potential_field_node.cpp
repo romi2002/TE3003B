@@ -14,6 +14,7 @@
 
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "geometry_msgs/msg/vector3_stamped.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 using namespace std::chrono_literals;
 
@@ -36,6 +37,12 @@ class PotentialFieldController : public rclcpp::Node {
         this->scan_msg_ = msg;
       }
     );
+
+    odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+      "/model/puzzlebot1/odometry", 10, [this](const nav_msgs::msg::Odometry &msg){
+        this->odom = msg;
+      }
+    )
 
     force_goal_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("goal_force", 10);
     force_obs_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("obstacle_force", 10);
@@ -95,26 +102,20 @@ class PotentialFieldController : public rclcpp::Node {
     // Hardcoded for now :)
     double dt = 0.01;
 
-    geometry_msgs::msg::TransformStamped transformStamped;
-    try{
-      transformStamped = tf_buffer_->lookupTransform("map", "base_link", tf2::TimePointZero);
-    }
-    catch (tf2::TransformException &ex) {
-      RCLCPP_WARN(this->get_logger(), "%s", ex.what());
-      rclcpp::sleep_for(1s);
+    if(!odom.has_value()){
       return;
     }
 
     /// Get RPY from transform quaternion.
     tf2::Quaternion q;
-    tf2::fromMsg(transformStamped.transform.rotation, q);
+    tf2::fromMsg(odom->pose.pose.orientation, q);
     tf2::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
 
     // Compute error distance and angle to target
-    double error_x = target_x - transformStamped.transform.translation.x;
-    double error_y = target_y - transformStamped.transform.translation.y;
+    double error_x = target_x - odom->pose.pose.position.x;
+    double error_y = target_y - odom->pose.pose.position.y;
     double dist = std::hypot(error_x, error_y);
 
     // Goal attraction. Transform error from world frame to robot frame.
@@ -202,6 +203,9 @@ class PotentialFieldController : public rclcpp::Node {
   rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr force_goal_pub, force_obs_pub;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr targetSub;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+
+  std::optional<nav_msgs::msg::Odometry> odom;
   std::optional<sensor_msgs::msg::LaserScan> scan_msg_;
 
   rclcpp::TimerBase::SharedPtr timer;
