@@ -1,1 +1,2 @@
-ArucoMarkers[] arucos_detected
+std_msgs/Header header
+ArucoMarkers[] detections
