@@ -30,8 +30,7 @@ class GripperNode(Node):
         
         self.robot_velocity = Twist()
         self.servo_angle = Float32()
-        self.gripper_start = Bool()
-        self.gripper_state = Gripper()
+        self.gripper_start = True
 
         # Messages
         self.aruco_msg = ArucosDetected()
@@ -42,71 +41,79 @@ class GripperNode(Node):
         self.CENTER_IMG_Y = 360 # 720/2 (HEIGHT_IMG/2)
 
         # State variables
-        self.actual_state = 'IDLE'
+        self.actual_state = 'FINISHED'
+        self.cube_id = 9
+        self.kp_linear, self.kp_angular = 0.1, 0.1
+        self.error_tol = 10.0
+        self.servo_grip_angle = 20.0
 
     def aruco_callback(self, msg):
         self.aruco_msg = msg
 
     def cube_callback(self, msg):
-        self.gripper_start = msg
+        self.gripper_start = msg.data
     
     def timer_callback(self):
-
-        if self.gripper_start:
+        gripper_state = Gripper()
+        if self.gripper_start and self.actual_state == 'FINISHED':
             self.actual_state = 'SEARCHING'
         
         if self.actual_state == 'SEARCHING':
             self.get_logger().info('Searching')
-            if self.aruco_msg.detections:
-                for i in self.aruco_msg.detections:
-                    if i.marker_id == 6:
-                        self.actual_state = 'ALIGN'
-                        self.robot_velocity.angular.z = 0.0
-                        self.robot_velocity.linear.x = 0.0
-                        break
-                    else:
-                        self.robot_velocity.angular.z = 0.2
-                        self.robot_velocity.linear.x = 0.0
+            self.robot_velocity.angular.z = 0.2
+            self.robot_velocity.linear.x = 0.0
+            for tag in self.aruco_msg.detections:
+                if tag.marker_id != self.cube_id:
+                    continue
+                self.actual_state = 'ALIGN'
+                self.robot_velocity.angular.z = 0.0
+                self.robot_velocity.linear.x = 0.0
+                break
             self.velocity_pub.publish(self.robot_velocity)
 
         if self.actual_state == 'ALIGN':
             self.get_logger().info('Aligning')
             # Calculate the dot error
-            tag = next(tag for tag in self.aruco_msg.detections if tag.marker_id == 6)
-            if tag is None:
+            tag = [tag for tag in self.aruco_msg.detections if tag.marker_id == self.cube_id]
+            if len(tag) == 0:
                 self.get_logger().info('No Aruco Detected')
                 self.actual_state = 'SEARCHING'
                 return
-            
+            tag = tag[0]
             delta_x = self.CENTER_IMG_X - tag.centroid.x
             delta_y = self.CENTER_IMG_Y - tag.centroid.y
-            self.error_x = (delta_x* np.pi)/ self.CENTER_IMG_X
-            self.error_y = delta_y / self.CENTER_IMG_Y
-            self.distance_error = np.sqrt((np.power(delta_x,2))+(np.power(delta_y,2)))
-            self.gripper_state.distance_error = self.distance_error
+            error_x = delta_x / self.CENTER_IMG_X
+            error_y = delta_y / self.CENTER_IMG_Y
+            distance_error = np.hypot(delta_x, delta_y)
+            gripper_state.distance_error = distance_error
             
-            if self.distance_error < 10:
+            if distance_error < self.error_tol:
                 self.robot_velocity.angular.z = 0.0
                 self.robot_velocity.linear.x = 0.0
                 self.velocity_pub.publish(self.robot_velocity)
                 self.get_logger().info('Aligned')
                 self.actual_state = 'GRIP'
             else:
-                self.robot_velocity.angular.z = self.kp * self.error_x
-                self.robot_velocity.linear.x = self.kp * self.error_y
+                self.robot_velocity.angular.z = self.kp_angular * error_x
+                self.robot_velocity.linear.x = self.kp_linear * error_y
                 self.velocity_pub.publish(self.robot_velocity)
 
         if self.actual_state == 'GRIP':
             self.get_logger().info('Gripping')
-            self.servo_angle.data = 20
+            self.servo_angle.data = self.servo_grip_angle
             self.actual_state = 'FINISHED'
             self.servo_pub.publish(self.servo_angle)
 
-        if self.actual_state == 'FINISHED':
-            return
-        
-        self.gripper_state.state = self.actual_state
-        self.gripper_pub.publish(self.gripper_state)
+        gripper_state.state = self.actual_state
+        self.gripper_pub.publish(gripper_state)
 
         
-            
+def main(args=None):
+    rclpy.init(args=args)
+    gripper_node = GripperNode()
+    rclpy.spin(gripper_node)
+    gripper_node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()

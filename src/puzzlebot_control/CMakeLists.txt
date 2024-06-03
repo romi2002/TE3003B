@@ -41,9 +41,9 @@ INSTALL(TARGETS
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/cmd_vel_node.py
+  scripts/gripper_test.py
   src/odometry_node.py
   scripts/set_point.py
-  src/gripper_test.py
   scripts/ekf_slam.py
   scripts/potential_node.py
   scripts/bug0_node.py
