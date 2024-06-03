@@ -12,11 +12,11 @@ import message_filters
 
 # Python imports
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 import cv2
 from cv_bridge import CvBridge
 import argparse
 import sys
-from tf_transformations import quaternion_from_matrix
 
 # ROS2 message imports
 from sensor_msgs.msg import CameraInfo
@@ -24,8 +24,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Pose, PoseArray, Point
 from arucos_interfaces.msg import ArucoMarkers, ArucosDetected
 from rcl_interfaces.msg import ParameterDescriptor, ParameterType
-from std_msgs.msg import Header
-
+from std_msgs.msg import Header, Float64
 
 
 # Define command line arguments
@@ -48,7 +47,7 @@ ap.add_argument(
     "-t",
     "--type",
     type=str,
-    default="DICT_5X5_50",
+    default="DICT_5X5_100",
     help="Type of ArUCo tag to detect",
 )
 
@@ -88,24 +87,9 @@ if args["type"] not in ARUCO_DICT:
     logger.get_logger().error(f"ArUCo tag type '{args['type']}' is not supported")
     sys.exit(0)
 
+# aruco_dict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]]) #modificar
 aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT[args["type"]])
-# aruco_params = cv2.aruco.DetectorParameters_create()
 aruco_params = cv2.aruco.DetectorParameters()
-
-# Custom marker_points depending on the aruco ID
-def marker_points(aruco_size):
-    array = np.array(
-    [
-        [-aruco_size / 2, aruco_size / 2, 0],
-        [aruco_size / 2, aruco_size / 2, 0],
-        [aruco_size / 2, -aruco_size / 2, 0],
-        [-aruco_size / 2, -aruco_size / 2, 0],
-    ],
-    dtype=np.float32,
-    )
-    return array
-
-
 
 
 class ArucoNode(Node):
@@ -117,15 +101,26 @@ class ArucoNode(Node):
         self.bridge = CvBridge()
         self.camera_matrix = None
         self.distortion_coefficients = None
-        self.wall_marker_size = 0.1  # Marker Size in Meters
-        self.cube_marker_size = 0.05
+        self.marker_size = 0.1  # Marker Size in Meters
+        
+        # TODO Move this to a parameter
+        # In degrees
+        self.camera_rpy = np.array((-90, 0, -90))
+        r = R.from_euler('xyz', self.camera_rpy, degrees=True)
+        self.camera_xyz = np.array((0, 0, 0))
+
+        self.camera_transform_matrix = np.zeros((4, 4))
+        # First 3x3 is rotation matrix
+        self.camera_transform_matrix[0:3, 0:3] = r.as_matrix()
+        self.camera_transform_matrix[0, 3] = self.camera_xyz[0]
+        self.camera_transform_matrix[1, 3] = self.camera_xyz[1]
+        self.camera_transform_matrix[2, 3] = self.camera_xyz[2]
+        self.camera_transform_matrix[3, 3] = 1
+        self.get_logger().info(f"Camera Transform Matrix:\n{self.camera_transform_matrix}")
 
         # Setup Publisher
-        # self.aruco_publisher_ = self.create_publisher(
-        #     ArucosDetected, "arucos_detected", 10
-        # )
-        self.aruco_marker_publisher_ = self.create_publisher(
-            ArucoMarkers, "aruco_marker", 10
+        self.aruco_publisher_ = self.create_publisher(
+            ArucosDetected, "arucos_detected", 10
         )
 
         # Setup Subscriber
@@ -136,6 +131,8 @@ class ArucoNode(Node):
             CameraInfo, args["camera_info"], self.caminfo_cb, 10
         )
 
+        # self.timer =  self.create_timer(timer_period, self.process_aruco)
+
     # Camera Info Callback
     def caminfo_cb(self, data):
         self.camera_matrix = np.array(data.k).reshape(3, 3)
@@ -145,10 +142,8 @@ class ArucoNode(Node):
     def imageproc_cb(self, data):
         opencv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         grayscale = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2GRAY)
-        self.corners, self.ids, self.rejected = cv2.aruco.detectMarkers(  # Corners es un array de de esquinas o sea cada elemento tiene 4
-            grayscale,
-            aruco_dict,
-            parameters=aruco_params,
+        self.corners, self.ids, self.rejected = cv2.aruco.detectMarkers(
+            grayscale, aruco_dict, parameters=aruco_params
         )
         print(self.ids)
         if self.ids is not None:
@@ -156,6 +151,16 @@ class ArucoNode(Node):
         else:
             print("NO ARUCO detected")
 
+    # #Process Detected Aruco Markers
+    # def process_aruco(self):
+    #     detected_arucos = []
+    #     rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(self.corners, self.marker_size, self.camera_matrix, self.distortion_coefficients)
+    #     for i, corner in enumerate(self.corners):
+    #         center = corner.reshape((4,2)).mean(axis=0)
+    #         pose = [tvecs[i][0][0],tvecs[i][0][1],tvecs[i][0][2]] #position in 3D space
+    #         detected_arucos.append(ArucosDetected(id=int(self.ids[i][0]), pose=pose))
+    #     self.aruco_publisher_.publish(ArucosDetected(arucos_detected=detected_arucos))
+    #     self.get_logger().info('Publishing ArucosDetected')
 
     # Process Detected Aruco Markers
     def process_aruco(self):
@@ -168,34 +173,51 @@ class ArucoNode(Node):
         detected_arucos.header.stamp = self.get_clock().now().to_msg()
         detected_arucos.header.frame_id = "camera"
 
+        marker_points = np.array(
+            [
+                [-self.marker_size / 2, self.marker_size / 2, 0],
+                [self.marker_size / 2, self.marker_size / 2, 0],
+                [self.marker_size / 2, -self.marker_size / 2, 0],
+                [-self.marker_size / 2, -self.marker_size / 2, 0],
+            ],
+            dtype=np.float32,
+        )
 
-
-        # Del array de multiples esquinas se hace iteracion de cada conjunto (4)
-        for i, corner in enumerate(self.corners):  # creo que estoy haciendo un solo aruco deberia de modificar el codigo para que sean todos?
-            
+        for i, corner in enumerate(self.corners):
             marker = ArucoMarkers()
             marker.header = detected_arucos.header
             marker.marker_id = int(self.ids[i][0])
 
+            _, rvec, tvec = cv2.solvePnP(
+                marker_points,
+                corner,
+                self.camera_matrix,
+                self.distortion_coefficients,
+                False,
+                cv2.SOLVEPNP_IPPE_SQUARE,
+            )
+            #print(f"rvec {rvec} tvec {tvec} {tvec.shape}")
+            rot, _ = cv2.Rodrigues(rvec)
+            marker_matrix = np.zeros((4, 4))
+            # First 3x3 is rotation matrix
+            marker_matrix[0:3, 0:3] = rot
+            marker_matrix[0, 3] = tvec[0][0]
+            marker_matrix[1, 3] = tvec[1][0]
+            marker_matrix[2, 3] = tvec[2][0]
+            marker_matrix[3, 3] = 1
             
-            if marker.marker_id == 6:
-                _, rvec, tvec = cv2.solvePnP(
-                marker_points(self.cube_marker_size),
-                corner,
-                self.camera_matrix,
-                self.distortion_coefficients,
-                False,
-                cv2.SOLVEPNP_IPPE_SQUARE,
-                )
-            else:
-                _, rvec, tvec = cv2.solvePnP(
-                marker_points(self.wall_marker_size),
-                corner,
-                self.camera_matrix,
-                self.distortion_coefficients,
-                False,
-                cv2.SOLVEPNP_IPPE_SQUARE,
-                )
+            transformed_marker = self.camera_transform_matrix @ marker_matrix
+            print(f"{self.camera_transform_matrix}")
+
+            x = transformed_marker[0, 3]
+            y = transformed_marker[1, 3]
+            z = transformed_marker[2, 3]
+            marker.pose.position.x = x
+            marker.pose.position.y = y
+            marker.pose.position.z = z
+            
+            marker.range.data = np.hypot(x, y)
+            marker.bearing.data = np.arctan2(y, x)
 
             # Calcular centroide del aruco
             centroid = Point()
@@ -205,29 +227,9 @@ class ArucoNode(Node):
             centroid.z = 0.0 # Imagen es en 2D
             marker.centroid = centroid
 
-            # print(f"rvec {rvec} tvec {tvec} {tvec.shape}")
-            marker.pose.position.x = tvec[0][0]
-            marker.pose.position.y = tvec[1][0]
-            marker.pose.position.z = tvec[2][0]
-
-            # Rotation vector to rotation matrix
-            rotation_matrix = np.eye(4)
-            rotation_matrix[0:3, 0:3] = cv2.Rodrigues(np.array(rvec))[0] ## checar[][]??
-
-            quaternion = quaternion_from_matrix(rotation_matrix)
-
-            marker.pose.orientation.x = quaternion[0]
-            marker.pose.orientation.y = quaternion[1]
-            marker.pose.orientation.z = quaternion[2]
-            marker.pose.orientation.w = quaternion[3]
-
-
             detected_arucos.detections.append(marker)
-            self.aruco_marker_publisher_.publish(marker)
-            # self.get_logger().info("Publishing ArucoMarkers")
-            # cv2.aruco.drawAxis(grayscale, self.mtx, self.dst, rvec[i], tvec[i], 0.05)  # checar rvec[i]?
 
-        #self.aruco_publisher_.publish(detected_arucos)
+        self.aruco_publisher_.publish(detected_arucos)
         self.get_logger().info("Publishing ArucosDetected")
 
 

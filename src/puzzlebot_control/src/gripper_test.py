@@ -7,8 +7,8 @@ from rclpy.qos import QoSProfile, qos_profile_sensor_data
 
 from std_msgs.msg import Float32, Bool
 from geometry_msgs.msg import Twist
-from puzzlebot_control.msg import Gripper
-from arucos_interfaces.msg import ArucoMarkers, ArucosDetected  # Import the custom message - ArucoMarkers
+# from puzzlebot_control.msg import Gripper
+from arucos_interfaces.msg import ArucoMarkers, ArucosDetected, Gripper  # Import the custom message - ArucoMarkers
 
 import numpy as np
 
@@ -19,7 +19,7 @@ class GripperNode(Node):
 
 
         # SUBSCRIBERS      
-        self.create_subscription(ArucosDetected, '/aruco_detected', self.aruco_callback, 10)
+        self.create_subscription(ArucosDetected, '/arucos_detected', self.aruco_callback, 10)
         self.create_subscription(Bool, '/gripper_start',self.cube_callback,10)
         self.create_timer(1.0, self.timer_callback)
 

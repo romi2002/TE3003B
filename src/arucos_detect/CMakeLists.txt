@@ -26,7 +26,8 @@ install(PROGRAMS scripts/camera_info.py DESTINATION lib/${PROJECT_NAME})
 
 # Install directories
 install(DIRECTORY
-    launch yaml
+    launch
+    yaml
     DESTINATION share/${PROJECT_NAME}
 )
 
