@@ -26,6 +26,7 @@ ament_target_dependencies(controller_node rclcpp geometry_msgs tf2 tf2_ros tf2_g
 ament_target_dependencies(kinematic_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs std_msgs)
 ament_target_dependencies(joint_state_node rclcpp geometry_msgs sensor_msgs tf2_geometry_msgs std_msgs)
 # ament_target_dependencies(potential_field_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs)
+ament_target_dependencies(potential_field_node rclcpp geometry_msgs tf2 tf2_ros nav_msgs tf2_geometry_msgs sensor_msgs)
 ament_target_dependencies(odometry_node rclcpp geometry_msgs tf2 tf2_ros tf2_geometry_msgs sensor_msgs nav_msgs)
 
 INSTALL(TARGETS
@@ -42,8 +43,11 @@ install(PROGRAMS
   scripts/cmd_vel_node.py
   src/odometry_node.py
   scripts/set_point.py
-  # scripts/ekf_slam.py
   src/gripper_test.py
+  scripts/ekf_slam.py
+  scripts/potential_node.py
+  scripts/bug0_node.py
+  scripts/bug.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

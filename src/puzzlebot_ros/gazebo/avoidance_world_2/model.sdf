@@ -1,0 +1,134 @@
+<?xml version='1.0' ?>
+  <sdf version='1.4'>
+  <model name='office'>
+
+    <static>true</static>
+
+    <link name='Wall_10'>
+        <pose>0.35 -0.05 0.625 0.0 0.0 0.0</pose>
+
+        <visual name='Wall_10_Visual'>
+            <geometry>
+              <mesh>
+                  <uri>./meshes/wall_1.dae</uri>
+              </mesh>
+            </geometry>
+      </visual>
+
+      <collision name='Wall_10_Collision'>
+        <pose>0 0 0.0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.1 1.2 1.25</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name='Wall_20'>
+          <pose>-0.750 0.6 0.625 0.0 0.0 0.0</pose>
+
+          <visual name='Wall_20_Visual'>
+              <geometry>
+              <mesh>
+                  <uri>./meshes/wall_2.dae</uri>
+              </mesh>
+            </geometry>
+        </visual>
+
+        <collision name='Wall_20_Collision'>
+          <pose>0 0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2.3 0.1 1.25</size>
+            </box>
+          </geometry>
+        </collision>
+    </link>
+    
+    <link name='Wall_30'>
+        <pose>-1.95 1.35 0.625 0.0 0.0 0.0</pose>
+
+        <visual name='Wall_30_Visual'>
+            <geometry>
+              <mesh>
+                  <uri>./meshes/wall_3.dae</uri>
+              </mesh>
+            </geometry>
+      </visual>
+
+      <collision name='Wall_30_Collision'>
+        <pose>0 0 0.0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.1 1.6 1.25</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name='Wall_40'>
+        <pose>-0.05 2.2 0.625 0.0 0.0 0.0</pose>
+
+        <visual name='Wall_40_Visual'>
+            <geometry>
+              <mesh>
+                  <uri>./meshes/wall_4.dae</uri>
+              </mesh>
+            </geometry>
+      </visual>
+
+      <collision name='Wall_40_Collision'>
+        <pose>0 0 0.0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>3.9 0.1 1.25</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name='Wall_50'>
+        <pose>1.95 0.05 0.625 0.0 0.0 0.0</pose>
+
+        <visual name='Wall_50_Visual'>
+            <geometry>
+                <mesh>
+                  <uri>./meshes/wall_5.dae</uri>
+              </mesh>
+            </geometry>
+      </visual>
+
+      <collision name='Wall_50_Collision'>
+        <pose>0 0 0.0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.1 4.4 1.25</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name='Wall_60'>
+        <pose>0.0 -2.2 0.625 0.0 0.0 0.0</pose>
+
+        <visual name='Wall_60_Visual'>
+            <geometry>
+                <mesh>
+                  <uri>./meshes/wall_6.dae</uri>
+              </mesh>
+            </geometry>
+      </visual>
+
+      <collision name='Wall_60_Collision'>
+        <pose>0 0 0.0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>4.0 0.1 1.25</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+  
+  </model>
+  </sdf>

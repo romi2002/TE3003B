@@ -218,6 +218,40 @@ class ArucoNode(Node):
             
             marker.range.data = np.hypot(x, y)
             marker.bearing.data = np.arctan2(y, x)
+            detected_arucos.detections.append(marker)
+
+            marker.marker_id = int(self.ids[i][0])
+
+            _, rvec, tvec = cv2.solvePnP(
+                marker_points,
+                corner,
+                self.camera_matrix,
+                self.distortion_coefficients,
+                False,
+                cv2.SOLVEPNP_IPPE_SQUARE,
+            )
+            #print(f"rvec {rvec} tvec {tvec} {tvec.shape}")
+            rot, _ = cv2.Rodrigues(rvec)
+            marker_matrix = np.zeros((4, 4))
+            # First 3x3 is rotation matrix
+            marker_matrix[0:3, 0:3] = rot
+            marker_matrix[0, 3] = tvec[0][0]
+            marker_matrix[1, 3] = tvec[1][0]
+            marker_matrix[2, 3] = tvec[2][0]
+            marker_matrix[3, 3] = 1
+            
+            transformed_marker = self.camera_transform_matrix @ marker_matrix
+            print(f"{self.camera_transform_matrix}")
+
+            x = transformed_marker[0, 3]
+            y = transformed_marker[1, 3]
+            z = transformed_marker[2, 3]
+            marker.pose.position.x = x
+            marker.pose.position.y = y
+            marker.pose.position.z = z
+            
+            marker.range.data = np.hypot(x, y)
+            marker.bearing.data = np.arctan2(y, x)
 
             # Calcular centroide del aruco
             centroid = Point()
@@ -230,7 +264,6 @@ class ArucoNode(Node):
             detected_arucos.detections.append(marker)
 
         self.aruco_publisher_.publish(detected_arucos)
-        self.get_logger().info("Publishing ArucosDetected")
 
 
 def main(args=None):
