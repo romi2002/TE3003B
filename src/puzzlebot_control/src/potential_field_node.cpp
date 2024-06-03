@@ -42,7 +42,7 @@ class PotentialFieldController : public rclcpp::Node {
       "/model/puzzlebot1/odometry", 10, [this](const nav_msgs::msg::Odometry &msg){
         this->odom = msg;
       }
-    )
+    );
 
     force_goal_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("goal_force", 10);
     force_obs_pub = this->create_publisher<geometry_msgs::msg::Vector3Stamped>("obstacle_force", 10);

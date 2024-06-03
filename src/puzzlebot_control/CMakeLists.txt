@@ -45,6 +45,7 @@ install(PROGRAMS
   scripts/ekf_slam.py
   scripts/potential_node.py
   scripts/bug0_node.py
+  scripts/bug.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -39,6 +39,7 @@ class PotentialFieldNode(Node):
         self.timer = self.create_timer(0.01, self.timer_cb)
         self.target_x, self.target_y = None, None
         self.obs_x, self.obs_y = 0, 0
+        self.yaw = 0
 
     def target_cb(self, msg):
         self.target_x = msg.pose.position.x
@@ -48,7 +49,7 @@ class PotentialFieldNode(Node):
         fx, fy = 0, 0
         valid_ranges = 0
         for i, range in enumerate(msg.ranges):
-            angle = i * msg.angle_increment + msg.angle_min + np.pi
+            angle = i * msg.angle_increment + msg.angle_min + np.pi + self.yaw
             intensity = msg.intensities[i]
 
             if intensity == 0:
@@ -64,11 +65,6 @@ class PotentialFieldNode(Node):
             self.obs_y = fy / valid_ranges
         else:
             self.obs_x, self.obs_y = 0, 0
-            
-    def __del__(self):
-        self.get_logger().info("Stopping robot")
-        zero_vel = Twist()
-        self.cmd_vel_pub.publish(zero_vel)
 
     def timer_cb(self):
         if self.target_x is None or self.target_y is None:
@@ -87,22 +83,21 @@ class PotentialFieldNode(Node):
             return
 
         q = t.transform.rotation
-        roll, pitch, yaw = euler_from_quaternion((q.x, q.y, q.z, q.w))
+        roll, pitch, self.yaw = euler_from_quaternion((q.x, q.y, q.z, q.w))
 
         error_x = self.target_x - t.transform.translation.x
         error_y = self.target_y - t.transform.translation.y
 
-        goal_x = (error_x * np.cos(yaw) - error_y * np.sin(yaw))
-        goal_y = (error_x * np.sin(yaw) + error_y * np.cos(yaw))
+        goal_x = error_x
+        goal_y = error_y
 
-        self.obs_x, self.obs_y = 0, 0
         fx = goal_x * self.goal_gain + self.obs_x * self.obstacle_gain
         fy = goal_y * self.goal_gain + self.obs_y * self.obstacle_gain
 
         mag = np.hypot(fx, fy)
-        angle = np.arctan2(fy, fx) - yaw
+        angle = np.arctan2(fy, fx) - self.yaw
 
-        u = mag * np.cos(angle) * self.k_u
+        u = mag * np.clip(np.cos(angle), 0, 1) * self.k_u
         r = angle * self.k_r
         
         if np.hypot(error_x, error_y) < 0.1:
@@ -112,7 +107,9 @@ class PotentialFieldNode(Node):
         cmd_vel = Twist()
         cmd_vel.linear.x = u
         cmd_vel.angular.z = r
-        self.get_logger().info(f"tx: {t.transform.translation.x} ty: {t.transform.translation.y} gx: {goal_x}, gy: {goal_y} u: {u} r: {r}")
+        #self.get_logger().info(f"gx: {goal_x} gy: {goal_y}")
+        self.get_logger().info(f"ox: {self.obs_x} oy: {self.obs_y}")
+        #self.get_logger().info(f"tx: {t.transform.translation.x} ty: {t.transform.translation.y} gx: {goal_x}, gy: {goal_y} u: {u} r: {r}")
         self.cmd_vel_pub.publish(cmd_vel)
         
 def main(args=None):
