@@ -1,0 +1,3 @@
+string state
+string random_walk_state
+float64 distance_to_goal
