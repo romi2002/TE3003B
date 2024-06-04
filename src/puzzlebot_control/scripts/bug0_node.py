@@ -47,7 +47,7 @@ class Bug0Algorithm(Node):
         self.range_min = 0.5  # More than distance obj
 
         self.k_u = 0.25
-        self.k_r = 0.85
+        self.k_r = 0.9
 
         #self.current_x = 0.0
         #self.current_y = 0.0
@@ -68,7 +68,12 @@ class Bug0Algorithm(Node):
         self.target_y = msg.pose.position.y
 
     def wrap_angle_controller(self, angle):
-        return math.atan2(math.sin(angle), math.cos(angle))
+        angle = math.copysign(math.fmod(angle, 2 * math.pi), angle)
+        if angle > math.pi:
+            angle -= 2 * math.pi
+        elif angle < -math.pi:
+            angle += 2 * math.pi
+        return angle
 
     def controller(self):
         msg = Twist()
@@ -82,6 +87,7 @@ class Bug0Algorithm(Node):
         angle = self.wrap_angle_controller(math.atan2(error_y, error_x) - self.current_yaw)
 
         u = distance * math.cos(angle) * self.k_u
+        #u = np.clip(u, 0, max_vel)
         r = angle * self.k_r
 
         if distance < 0.05:
@@ -143,12 +149,13 @@ class Bug0Algorithm(Node):
         self.get_logger().info(f'Distances - Left: {left_dist}, Front: {front_dist}, Right: {right_dist}')
         #return
 
+        mike = 0.25
         msg = Twist()        
-        if (left_dist < d and front_dist > d+0.13 and right_dist > d) or (left_dist < d and front_dist < d+0.13 and right_dist > d):
+        if (left_dist < d and front_dist > d+mike and right_dist > d) or (left_dist < d and front_dist < d+mike and right_dist > d):
             msg.linear.x = 0.0
             msg.angular.z = -self.turning_speed  # turn right
             self.get_logger().info("Turning RIGHT")
-        elif (left_dist > d and front_dist > d+0.13 and right_dist < d) or (left_dist > d and front_dist < d+0.13 and right_dist < d) or (left_dist < d and front_dist < d+0.13 and right_dist < d):
+        elif (left_dist > d and front_dist > d+mike and right_dist < d) or (left_dist > d and front_dist < d+mike and right_dist < d) or (left_dist < d and front_dist < d+mike and right_dist < d):
             msg.linear.x = 0.0
             msg.angular.z = self.turning_speed  # turn left
             self.get_logger().info("Turning LEFT")
@@ -197,9 +204,6 @@ class Bug0Algorithm(Node):
             return
         
         if self.target_x is None or self.target_y is None:
-            self.get_logger().warn(
-                "No target given"
-            )
             return
         # front_dist = min(self.get_scan_within_range(-np.pi/6, np.pi/6))
         # left_dist = min(self.get_scan_within_range(np.pi/6, np.pi*2/3))

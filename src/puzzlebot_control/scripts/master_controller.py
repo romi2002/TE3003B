@@ -18,6 +18,7 @@ from tf2_ros.buffer import Buffer
 
 from tf_transformations import euler_from_quaternion
 from puzzlebot_interfaces.msg import StateControllerStatus
+import random
 
 from std_srvs.srv import Empty
 
@@ -64,11 +65,12 @@ class MoveToPoint:
 class RandomWalk:
     def __init__(self, logger, clock):
         self.state = RandomWalkState.FORWARD
-        self.k_obstacle_threshold = 0.5
+        self.k_obstacle_threshold = 0.4
         self.k_angle_to_turn = np.pi / 4
         self.k_angle_to_turn_tol = 0.5
-        self.k_turn_time = 5
+        self.k_turn_time = 1.75
         self.turn_time_remaining = 0
+        self.turn_direction = 1
         self.clock = clock        
         self.turn_start_time = self.clock.now()
         self.logger = logger
@@ -82,7 +84,10 @@ class RandomWalk:
             and min(front_scan) < self.k_obstacle_threshold
         ):
             self.state = RandomWalkState.TURNING
-            self.turn_start_time = self.clock.now()
+            self.turn_start_time = self.clock.now() 
+            self.turn_direction = random.choice([-1, 1])
+            self.k_turn_time = random.random() * 1
+            self.turn_direction = 1
             self.logger.info("Turning")
         elif (
             self.state == RandomWalkState.TURNING
@@ -93,11 +98,11 @@ class RandomWalk:
 
         u, r = 0, 0
         if self.state == RandomWalkState.FORWARD:
-            u = 0.5
+            u = 0.6
             r = 0
         elif self.state == RandomWalkState.TURNING:
             u = 0
-            r = 0.75
+            r = 0.75 * self.turn_direction
 
         return (u, r)
 
@@ -172,7 +177,7 @@ class ControllerNode(Node):
         self.state = ControllerState.MAPPING
         self.last_state = None
         self.target_pose = None
-        self.distance_tol = 0.2
+        self.distance_tol = 0.25
         self.next_state = None
         self.timer = self.create_timer(0.01, self.update)
 
@@ -182,10 +187,10 @@ class ControllerNode(Node):
         self.random_walk = RandomWalk(self.get_logger(), self.get_clock())
         self.move_to_point = MoveToPoint()
         self.target_id = 8
-        self.home_id = 9
+        self.home_id = 15
         
         self.backup_start = self.get_clock().now()
-        self.k_backup_time = 1.5
+        self.k_backup_time = 3.5
         
     def gripper_servo_cb(self, msg):
         self.gripper_servo_cmd = msg.data
@@ -309,7 +314,7 @@ class ControllerNode(Node):
             servo_cmd.data = 110.0
             self.servo_pub.publish(servo_cmd)
         elif self.state == ControllerState.BACKUP:
-            u, r = (-0.75, 0)
+            u, r = (-0.875, 0.2)
         elif self.state == ControllerState.RETURN_TO_HOME:
             tag_pose = self.get_tag_pose(self.home_id)
             if tag_pose is None:

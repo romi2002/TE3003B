@@ -161,9 +161,9 @@ class EKFSlamNode(Node):
             Float32, 'VelocityEncR', self.right_cb, qos)
         self.wl, self.wr = None, None
 
-        R = np.diagflat(np.array([2.50, 2.50, 5.0])) ** 2 / 8
+        R = np.diagflat(np.array([3.50, 3.50, 5.0])) ** 2 / 7
         Q = np.diagflat(np.array([110.0, 110.0, 1e16])) ** 2 / 8
-        self.slam = EKF_SLAM_Correspondence(R, Q, range(12))
+        self.slam = EKF_SLAM_Correspondence(R, Q, range(17))
 
         self.r = 0.05 # Radius of each wheel
         self.l = 0.19 # Distance between the wheels (wheelbase)
@@ -189,7 +189,7 @@ class EKFSlamNode(Node):
 
     def measurement_cb(self, msg : ArucosDetected):
         for d in msg.detections:
-            if d.marker_id == 6:
+            if d.marker_id == 6 or d.marker_id == 0:
                 # Ignore cube tag ID
                 return
             

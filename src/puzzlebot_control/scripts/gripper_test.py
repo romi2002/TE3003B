@@ -48,7 +48,7 @@ class GripperNode(Node):
 
         # Coordanates of the center of the image
         self.CENTER_IMG_X = (1280 / 2)  # 1280/2 (WIDTH_IMG/2)
-        self.CENTER_IMG_Y = (720 / 2) + 50 # 720/2 (HEIGHT_IMG/2)
+        self.CENTER_IMG_Y = (720 / 2) + 250 # 720/2 (HEIGHT_IMG/2)
 
         self.error_x_integral = 0
         self.error_ang_integral = 0
