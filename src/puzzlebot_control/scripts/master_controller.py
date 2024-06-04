@@ -29,6 +29,16 @@ def wrap_angle(angle):
         angle += 2 * math.pi
     return angle
 
+def get_scan_within_range(scan, min_angle, max_angle):
+    a1, a2 = wrap_angle(min_angle), wrap_angle(max_angle)
+    min_angle, max_angle = min(a1, a2), max(a1, a2)
+    
+    ranges = []
+    for i, range in enumerate(scan.ranges):
+        angle = wrap_angle(i * scan.angle_increment + scan.angle_min + np.pi)
+        if min_angle < angle < max_angle:
+            ranges.append(range)
+    return ranges
 
 class RandomWalkState(Enum):
     FORWARD = 1
@@ -100,6 +110,8 @@ class ControllerNode(Node):
         self.pose_controller_vel_sub = self.create_subscription(
             Twist, "controller/cmd_vel", self.controller_cmd_vel_cb, 1
         )
+        self.controller_cmd_vel = None
+
         self.gripper_cmd_sub = self.create_subscription(
             Twist, "gripper/cmd_vel", self.gripper_cmd_vel_cb, 1
         )
@@ -164,13 +176,13 @@ class ControllerNode(Node):
         pass
 
     def scan_cb(self, msg):
-        pass
+        self.front_scan = get_scan_within_range(msg, -np.pi/4, np.pi/4)
 
     def controller_cmd_vel_cb(self, msg):
-        pass
+        self.controller_cmd_vel = msg
 
     def gripper_cmd_vel_cb(self, msg):
-        pass
+        self.gripper_cmd_vel = msg
 
     def arucos_detected_cb(self, msg):
         self.detected_arucos = msg
@@ -218,6 +230,7 @@ class ControllerNode(Node):
                 self.get_logger().info("Called gripper service")
             u, r = self.gripper_cmd_vel if self.gripper_cmd_vel else (0, 0)
         elif self.state == ControllerState.MOVE_TO_POINT:
+            # TODO Change this over to bug0
             u, r = self.move_to_point.update(self.pose, self.target_pose)
             status.distance_to_goal.data = distance_to_goal
         elif self.state == ControllerState.RELEASE:
