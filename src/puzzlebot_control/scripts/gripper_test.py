@@ -46,7 +46,7 @@ class GripperNode(Node):
         self.aruco = ArucoMarkers()
 
         # Coordanates of the center of the image
-        self.CENTER_IMG_X = (1280 / 2) + 100  # 1280/2 (WIDTH_IMG/2)
+        self.CENTER_IMG_X = (1280 / 2) + 400  # 1280/2 (WIDTH_IMG/2)
         self.CENTER_IMG_Y = 720 / 2 # 720/2 (HEIGHT_IMG/2)
 
         self.error_x_integral = 0
@@ -55,19 +55,22 @@ class GripperNode(Node):
         # State variables
         self.actual_state = GripperNodeState.IDLE
         self.cube_id = 6
-        self.kp_linear, self.kp_angular = 0.8, 0.5
-        self.ki_linear, self.ki_angular = 0.0001, 0.001
+        self.kp_linear, self.kp_angular = 0.55, 0.45
+        self.ki_linear, self.ki_angular = 0.0001, 0.0001
+        self.kd_linear, self.kd_angular = 0.0055, 0.0055
         self.error_tol_x = 0.1
         self.error_tol_y = 0.1
         self.servo_grip_angle = 25.0
-
-    def start_grip_cb(self, req, resp):
-        self.start_grip = True
+        self.last_error_x = 0.0
+        self.last_error_y = 0.0
 
     def aruco_callback(self, msg):
         self.aruco_msg = msg
         self.aruco_msg.detections.sort(key = lambda tag: tag.area.data)
 
+    def cube_callback(self, msg):
+        self.gripper_start = msg.data
+    
     def timer_callback(self):
         gripper_state = Gripper()
         if self.actual_state == GripperNodeState.IDLE and self.start_grip:
@@ -75,12 +78,11 @@ class GripperNode(Node):
             self.start_grip = False
 
         if self.actual_state == GripperNodeState.SEARCHING:
-            self.get_logger().info('Searching')
-
+            self.gripper_state = False
             open_angle = Float32()
             open_angle.data = 70.0
             self.servo_pub.publish(open_angle)
-
+            self.get_logger().info('Searching')
             self.robot_velocity.angular.z = 0.3
             self.robot_velocity.linear.x = 0.0
             cube_tags = [tag for tag in self.aruco_msg.detections if tag.marker_id == self.cube_id]
@@ -103,7 +105,7 @@ class GripperNode(Node):
             delta_x = self.CENTER_IMG_X - tag.centroid.x
             delta_y = self.CENTER_IMG_Y - tag.centroid.y
             error_x = delta_x / self.CENTER_IMG_X
-            error_y = delta_y / self.CENTER_IMG_Y
+            error_y = abs(delta_y / self.CENTER_IMG_Y)
             distance_error = np.hypot(error_x, error_y)
             gripper_state.distance_error = distance_error
             gripper_state.error_x = error_x
@@ -115,10 +117,12 @@ class GripperNode(Node):
                 self.get_logger().info('Aligned')
                 self.actual_state = GripperNodeState.GRIP
             else:
-                self.robot_velocity.angular.z = self.kp_angular * error_x + self.ki_angular * self.error_x_integral 
-                self.robot_velocity.linear.x = self.kp_linear * error_y + self.ki_linear * self.error_ang_integral
+                self.robot_velocity.angular.z = self.kp_angular * error_x + self.ki_angular * self.error_x_integral + self.kd_angular * (error_x - self.last_error_x) 
+                self.robot_velocity.linear.x = self.kp_linear * error_y + self.ki_linear * self.error_ang_integral + self.kd_linear * (error_y - self.last_error_y)
                 self.error_x_integral += error_x
                 self.error_ang_integral += error_y
+                self.last_error_x = error_x
+                self.last_error_y = error_y
                 self.velocity_pub.publish(self.robot_velocity)
 
         if self.actual_state == GripperNodeState.GRIP:
@@ -127,6 +131,8 @@ class GripperNode(Node):
             self.get_logger().info('Gripping')
             self.servo_angle.data = self.servo_grip_angle
             self.servo_pub.publish(self.servo_angle)
+            self.actual_state = GripperNodeState.IDLE
+            rclpy.shutdown()
 
         gripper_state.state = str(self.actual_state)
         self.gripper_pub.publish(gripper_state)
