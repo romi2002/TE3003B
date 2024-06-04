@@ -145,11 +145,7 @@ class ArucoNode(Node):
         self.corners, self.ids, self.rejected = cv2.aruco.detectMarkers(
             grayscale, aruco_dict, parameters=aruco_params
         )
-        print(self.ids)
-        if self.ids is not None:
-            self.process_aruco()
-        else:
-            print("NO ARUCO detected")
+        self.process_aruco()
 
     # #Process Detected Aruco Markers
     # def process_aruco(self):
@@ -207,7 +203,7 @@ class ArucoNode(Node):
             marker_matrix[3, 3] = 1
             
             transformed_marker = self.camera_transform_matrix @ marker_matrix
-            print(f"{self.camera_transform_matrix}")
+            #print(f"{self.camera_transform_matrix}")
 
             x = transformed_marker[0, 3]
             y = transformed_marker[1, 3]
@@ -260,6 +256,7 @@ class ArucoNode(Node):
             centroid.y = float(moments['m01'] / moments['m00'])
             centroid.z = 0.0 # Imagen es en 2D
             marker.centroid = centroid
+            marker.area.data = moments['m00']
 
             detected_arucos.detections.append(marker)
 

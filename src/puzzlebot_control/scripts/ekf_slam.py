@@ -2,7 +2,6 @@
 
 from collections import namedtuple
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 
 import rclpy
@@ -190,9 +189,9 @@ class EKFSlamNode(Node):
 
     def measurement_cb(self, msg : ArucosDetected):
         for d in msg.detections:
-            # if d.marker_id == 6:
-            #     # Ignore cube tag ID
-            #     return
+            if d.marker_id == 6:
+                # Ignore cube tag ID
+                return
             
             # self.get_logger().info(f"Seen: {d.marker_id}")
             det = TagDetection(d.marker_id, d.range.data, d.bearing.data)

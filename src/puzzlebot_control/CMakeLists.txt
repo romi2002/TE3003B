@@ -46,6 +46,7 @@ install(PROGRAMS
   scripts/set_point.py
   scripts/ekf_slam.py
   scripts/potential_node.py
+  scripts/master_controller.py
   scripts/bug0_node.py
   scripts/bug.py
   DESTINATION lib/${PROJECT_NAME}

@@ -7,7 +7,7 @@ from rclpy.node import Node
 from enum import Enum
 
 from std_msgs.msg import Float32, Bool
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
 from arucos_interfaces.msg import ArucoMarkers, ArucosDetected, Gripper
 from sensor_msgs.msg import LaserScan
 from rclpy.qos import qos_profile_sensor_data
@@ -62,28 +62,34 @@ class MoveToPoint:
 
 
 class RandomWalk:
-    def __init__(self):
+    def __init__(self, logger, clock):
         self.state = RandomWalkState.FORWARD
         self.k_obstacle_threshold = 0.5
-        self.turn_angle = None
         self.k_angle_to_turn = np.pi / 4
-        self.k_angle_to_turn_tol = 0.1
-        self.k_r = 0.1
+        self.k_angle_to_turn_tol = 0.5
+        self.k_turn_time = 5
+        self.turn_time_remaining = 0
+        self.clock = clock        
+        self.turn_start_time = self.clock.now()
+        self.logger = logger
 
     def update(self, pose, front_scan):
         _, _, theta = pose
+        self.turn_time_remaining = (self.clock.now() - self.turn_start_time).nanoseconds - self.k_turn_time * 1e9
         # Condition changes
         if (
             self.state == RandomWalkState.FORWARD
             and min(front_scan) < self.k_obstacle_threshold
         ):
             self.state = RandomWalkState.TURNING
-            self.turn_angle = wrap_angle(theta + self.k_angle_to_turn)
+            self.turn_start_time = self.clock.now()
+            self.logger.info("Turning")
         elif (
             self.state == RandomWalkState.TURNING
-            and np.abs(theta - self.turn_angle) < self.k_angle_to_turn_tol
+            and self.turn_time_remaining > 0
         ):
             self.state = RandomWalkState.FORWARD
+            self.logger.info("Finished turning")
 
         u, r = 0, 0
         if self.state == RandomWalkState.FORWARD:
@@ -91,7 +97,7 @@ class RandomWalk:
             r = 0
         elif self.state == RandomWalkState.TURNING:
             u = 0
-            r = (theta - self.turn_angle) * self.k_r
+            r = 0.75
 
         return (u, r)
 
@@ -101,6 +107,8 @@ class ControllerState(Enum):
     MOVE_TO_POINT = 2
     GRIP = 3
     RELEASE = 4
+    BACKUP = 5
+    RETURN_TO_HOME = 6
 
 
 class ControllerNode(Node):
@@ -116,6 +124,10 @@ class ControllerNode(Node):
             Twist, "gripper/cmd_vel", self.gripper_cmd_vel_cb, 1
         )
         self.gripper_cmd_vel = None
+        self.gripper_servo_sub = self.create_subscription(
+            Float32, "gripper/servo_angle", self.gripper_servo_cb, 10
+        )
+        self.gripper_servo_cmd = 110.0
 
         self.aruco_sub = self.create_subscription(
             ArucosDetected, "arucos_detected", self.arucos_detected_cb, 1
@@ -132,10 +144,19 @@ class ControllerNode(Node):
             LaserScan, "/scan", self.scan_cb, qos_profile_sensor_data
         )
         self.front_scan = None
+        
+        self.target_pub = self.create_publisher(
+            PoseStamped, "/target_pose", 10
+        )
 
         self.grip_sub = self.create_subscription(
-            Gripper, "/gripper_state", self.gripper_cb
+            Gripper, "/gripper_state", self.gripper_cb, 10
         )
+        self.grip_state = Gripper()
+        self.grip_idle_sub = self.create_subscription(
+            Bool, "/gripper/idle", self.gripper_idle_cb, 10
+        )
+        self.is_gripper_idle = False
         self.grip_succesful = False
 
         self.controller_state_pub = self.create_publisher(
@@ -150,15 +171,40 @@ class ControllerNode(Node):
         self.state = ControllerState.MAPPING
         self.last_state = None
         self.target_pose = None
-        self.distance_tol = 0.1
+        self.distance_tol = 0.2
         self.next_state = None
         self.timer = self.create_timer(0.01, self.update)
 
         self.detected_arucos = None
         self.detected_aruco_ids = set()
         self.cube_id = 6
-        self.random_walk = RandomWalk()
+        self.random_walk = RandomWalk(self.get_logger(), self.get_clock())
         self.move_to_point = MoveToPoint()
+        self.target_id = 8
+        self.home_id = 9
+        
+        self.backup_start = self.clock.now()
+        self.k_backup_time = 2.5
+        
+    def gripper_servo_cb(self, msg):
+        self.gripper_servo_cmd = msg.data
+        
+    def get_tag_pose(self, id):
+        try:
+            t = self.tf_buffer.lookup_transform("map", f"tag_{id}", rclpy.time.Time())
+            q = t.transform.rotation
+            _, _, yaw = euler_from_quaternion((q.x, q.y, q.z, q.w))
+        except TransformException as ex:
+            self.get_logger().error(f"Could not transform {ex}")
+            return None
+        return np.array(
+            (t.transform.translation.x, t.transform.translation.y)
+        )
+        
+    def send_target_pose(self, target_pose):
+        msg = PoseStamped()
+        msg.pose.position.x, msg.pose.position.y = target_pose
+        self.target_pub.publish(msg)
 
     def tf_timer_cb(self):
         try:
@@ -171,18 +217,21 @@ class ControllerNode(Node):
         self.pose = np.array(
             (t.transform.translation.x, t.transform.translation.y, yaw)
         )
+        
+    def gripper_idle_cb(self, msg):
+        self.is_gripper_idle = msg.data
 
     def gripper_cb(self, msg):
-        pass
+        self.grip_state = msg
 
     def scan_cb(self, msg):
         self.front_scan = get_scan_within_range(msg, -np.pi/4, np.pi/4)
 
     def controller_cmd_vel_cb(self, msg):
-        self.controller_cmd_vel = msg
+        self.controller_cmd_vel = msg.linear.x, msg.angular.z
 
     def gripper_cmd_vel_cb(self, msg):
-        self.gripper_cmd_vel = msg
+        self.gripper_cmd_vel = msg.linear.x, msg.angular.z
 
     def arucos_detected_cb(self, msg):
         self.detected_arucos = msg
@@ -191,13 +240,14 @@ class ControllerNode(Node):
     def update(self):
         status = StateControllerStatus()
         if self.front_scan is None or self.pose is None:
+            self.get_logger().warn(f"No scan {self.front_scan} or pose {self.pose}")
             return
 
         distance_to_goal = (
             np.hypot(
                 self.target_pose[0] - self.pose[0], self.target_pose[1] - self.pose[1]
             )
-            if self.target_pose
+            if self.target_pose is not None
             else 0
         )
 
@@ -208,7 +258,13 @@ class ControllerNode(Node):
         ):
             self.state = ControllerState.GRIP
             self.grip_succesful = False
-        elif self.state == ControllerState.GRIP and self.grip_succesful:
+        elif self.state == ControllerState.GRIP and self.grip_state.state == "GripperNodeState.GRIP":
+            tag_pose = self.get_tag_pose(self.target_id)
+            self.target_pose = tag_pose
+            if tag_pose is None:
+                self.get_logger().warn("Waiting for tag pose")
+                return
+            
             self.state = ControllerState.MOVE_TO_POINT
             self.next_state = ControllerState.RELEASE
         elif (
@@ -216,30 +272,41 @@ class ControllerNode(Node):
             and distance_to_goal < self.distance_tol
         ):
             self.state = self.next_state
-        else:
-            # Reached RELEASE, stay here (for now)
-            pass
+        elif self.state == ControllerState.RELEASE:
+            self.state = ControllerState.BACKUP
+        elif self.state == ControllerState.BACKUP and (self.clock.now() - self.turn_start_time).nanoseconds - self.k_turn_time * 1e9
 
         u, r = 0, 0
         if self.state == ControllerState.MAPPING:
             u, r = self.random_walk.update(self.pose, self.front_scan)
             status.random_walk_state = str(self.random_walk.state)
+            #status.distance_to_goal = self.random_walk.turn_time_remaining
         elif self.state == ControllerState.GRIP:
             if self.last_state != self.state:
-                self.gripper_srv.send_request(None, None)
+                self.get_logger().info("Calling gripper service")         
+                self.req = Empty.Request()       
+                self.gripper_srv.call_async(self.req)
                 self.get_logger().info("Called gripper service")
             u, r = self.gripper_cmd_vel if self.gripper_cmd_vel else (0, 0)
+            servo_cmd = Float32()
+            servo_cmd.data = self.gripper_servo_cmd
+            self.servo_pub.publish(servo_cmd)
         elif self.state == ControllerState.MOVE_TO_POINT:
             # TODO Change this over to bug0
-            u, r = self.move_to_point.update(self.pose, self.target_pose)
-            status.distance_to_goal.data = distance_to_goal
+            self.send_target_pose(self.get_tag_pose(self.target_id))            
+            u, r = self.controller_cmd_vel if self.controller_cmd_vel else (0, 0)
+            #status.distance_to_goal = distance_to_goal
         elif self.state == ControllerState.RELEASE:
             u, r = (0, 0)
+            servo_cmd = Float32()
+            servo_cmd.data = 110.0
+            self.servo_pub.publish(servo_cmd)
 
         status.state = str(self.state)
+        self.controller_state_pub.publish(status)
 
         cmd_vel = Twist()
-        cmd_vel.linear.x, cmd_vel.angular.z = u, r
+        cmd_vel.linear.x, cmd_vel.angular.z = float(u), float(r)
         self.cmd_vel_pub.publish(cmd_vel)
         self.last_state = self.state
 
