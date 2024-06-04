@@ -19,6 +19,7 @@ from tf2_ros.buffer import Buffer
 from tf_transformations import euler_from_quaternion
 from puzzlebot_interfaces import StateControllerStatus
 
+from std_srvs.srv import Empty
 
 def wrap_angle(angle):
     angle = math.copysign(math.fmod(angle, 2 * math.pi), angle)
@@ -108,7 +109,10 @@ class ControllerNode(Node):
             ArucosDetected, "arucos_detected", self.arucos_detected_cb, 1
         )
 
-        self.gripper_cmd_pub = self.create_publisher(Bool, "/gripper_start", 1)
+        self.gripper_srv = self.create_client(Empty, '/start_grip')
+        while not self.gripper_srv.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Service not available')
+        
         self.servo_pub = self.create_publisher(Float32, "/ServoAngle", 1)
 
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 1)
@@ -132,6 +136,7 @@ class ControllerNode(Node):
         self.pose = None  # X, Y, Theta
 
         self.state = ControllerState.MAPPING
+        self.last_state = None
         self.target_pose = None
         self.distance_tol = 0.1
         self.next_state = None
@@ -205,6 +210,9 @@ class ControllerNode(Node):
             u, r = self.random_walk.update(self.pose, self.front_scan)
             status.random_walk_state = str(self.random_walk.state)
         elif self.state == ControllerState.GRIP:
+            if self.last_state != self.state:
+                self.gripper_srv.send_request(None, None)
+                self.get_logger().info("Called gripper service")
             u, r = self.gripper_cmd_vel if self.gripper_cmd_vel else (0, 0)
         elif self.state == ControllerState.MOVE_TO_POINT:
             u, r = self.move_to_point.update(self.pose, self.target_pose)
@@ -217,7 +225,7 @@ class ControllerNode(Node):
         cmd_vel = Twist()
         cmd_vel.linear.x, cmd_vel.angular.z = u, r
         self.cmd_vel_pub.publish(cmd_vel)
-
+        self.last_state = self.state
 
 def main(args=None):
     rclpy.init(args=args)
