@@ -109,6 +109,7 @@ class ControllerState(Enum):
     RELEASE = 4
     BACKUP = 5
     RETURN_TO_HOME = 6
+    IDLE = 7
 
 
 class ControllerNode(Node):
@@ -183,8 +184,8 @@ class ControllerNode(Node):
         self.target_id = 8
         self.home_id = 9
         
-        self.backup_start = self.clock.now()
-        self.k_backup_time = 2.5
+        self.backup_start = self.get_clock().now()
+        self.k_backup_time = 1.5
         
     def gripper_servo_cb(self, msg):
         self.gripper_servo_cmd = msg.data
@@ -274,7 +275,13 @@ class ControllerNode(Node):
             self.state = self.next_state
         elif self.state == ControllerState.RELEASE:
             self.state = ControllerState.BACKUP
-        elif self.state == ControllerState.BACKUP and (self.clock.now() - self.turn_start_time).nanoseconds - self.k_turn_time * 1e9
+            self.backup_start = self.get_clock().now()
+        elif self.state == ControllerState.BACKUP and (self.get_clock().now() - self.backup_start).nanoseconds - self.k_backup_time * 1e9 > 0:
+            self.state = ControllerState.RETURN_TO_HOME
+        elif self.state == ControllerState.RETURN_TO_HOME and distance_to_goal < self.distance_tol:
+            self.state = ControllerState.IDLE
+        else:
+            pass
 
         u, r = 0, 0
         if self.state == ControllerState.MAPPING:
@@ -301,6 +308,18 @@ class ControllerNode(Node):
             servo_cmd = Float32()
             servo_cmd.data = 110.0
             self.servo_pub.publish(servo_cmd)
+        elif self.state == ControllerState.BACKUP:
+            u, r = (-0.75, 0)
+        elif self.state == ControllerState.RETURN_TO_HOME:
+            tag_pose = self.get_tag_pose(self.home_id)
+            if tag_pose is None:
+                self.get_logger().infO(f"Tag: {self.home_id} not seen oh no")
+            else:
+                self.target_pose = tag_pose
+                self.send_target_pose(tag_pose)
+            u, r = self.controller_cmd_vel if self.controller_cmd_vel else (0, 0)
+        elif self.state == ControllerState.IDLE:
+            pass
 
         status.state = str(self.state)
         self.controller_state_pub.publish(status)
