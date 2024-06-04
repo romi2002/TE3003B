@@ -8,7 +8,7 @@ from enum import Enum
 
 from std_msgs.msg import Float32, Bool
 from geometry_msgs.msg import Twist
-from arucos_interfaces.msg import ArucoMarkers, ArucosDetected
+from arucos_interfaces.msg import ArucoMarkers, ArucosDetected, Gripper
 from sensor_msgs.msg import LaserScan
 from rclpy.qos import qos_profile_sensor_data
 
@@ -17,7 +17,7 @@ from tf2_ros.transform_listener import TransformListener
 from tf2_ros.buffer import Buffer
 
 from tf_transformations import euler_from_quaternion
-from puzzlebot_interfaces import StateControllerStatus
+from puzzlebot_interfaces.msg import StateControllerStatus
 
 from std_srvs.srv import Empty
 
@@ -159,6 +159,9 @@ class ControllerNode(Node):
         self.pose = np.array(
             (t.transform.translation.x, t.transform.translation.y, yaw)
         )
+
+    def gripper_cb(self, msg):
+        pass
 
     def scan_cb(self, msg):
         pass
